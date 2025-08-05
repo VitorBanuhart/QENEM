@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = qenem
-build_property.ProjectDir = C:\Users\erikc\Source\Repos\QENEM\
+build_property.ProjectDir = C:\projects\qenem\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false

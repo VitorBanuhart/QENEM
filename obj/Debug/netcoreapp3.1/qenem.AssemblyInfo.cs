@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("qenem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3e88d485657ba3ffd99624a979d51044aa6e8458")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8550fc321e3f9f34de809406e17b6fc50b788347")]
 [assembly: System.Reflection.AssemblyProductAttribute("qenem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("qenem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
