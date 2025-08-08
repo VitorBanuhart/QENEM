@@ -1,7 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+using qenem.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<ApplicationDbContext>
+    (options => options.UseSqlServer("Data Source=;Initial Catalog=;Integrated Security=;User ID=;Password=;Connect Timeout=15;Encrypt=;TrustServerCertificate="));
 
 var app = builder.Build();
 

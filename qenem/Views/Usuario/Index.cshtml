@@ -1,0 +1,101 @@
+﻿@model IEnumerable<qenem.Models.UsuarioModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Senha)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NomeCompleto)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DataUltimoAcesso)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BAdministrador)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BExcluido)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Pontuacao)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IdAreaInteresse)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TemaUsuario)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NumeroDeLista)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.NumeroDeSimulado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LimiteDiarioQuestoes)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Senha)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NomeCompleto)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DataUltimoAcesso)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BAdministrador)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BExcluido)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Pontuacao)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdAreaInteresse)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TemaUsuario)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NumeroDeLista)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.NumeroDeSimulado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LimiteDiarioQuestoes)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
