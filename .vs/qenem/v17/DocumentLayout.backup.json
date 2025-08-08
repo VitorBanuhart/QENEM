@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\Projeto Empreendedor\\qenem\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|d:\\projeto empreendedor\\qenem\\qenem\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|solutionrelative:qenem\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|d:\\projeto empreendedor\\qenem\\qenem\\controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|solutionrelative:qenem\\controllers\\usuariocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|d:\\projeto empreendedor\\qenem\\qenem\\models\\usuariomodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|solutionrelative:qenem\\models\\usuariomodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|d:\\projeto empreendedor\\qenem\\qenem\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|solutionrelative:qenem\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E2334958-BA4F-4ACF-A81B-2B1B70B3EE9B}|qenem\\qenem.csproj|d:\\projeto empreendedor\\qenem\\qenem\\models\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -26,11 +26,19 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
             {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "UsuarioController.cs",
               "DocumentMoniker": "D:\\Projeto Empreendedor\\qenem\\qenem\\Controllers\\UsuarioController.cs",
               "RelativeDocumentMoniker": "qenem\\Controllers\\UsuarioController.cs",
@@ -51,12 +59,11 @@
               "RelativeToolTip": "qenem\\Models\\ApplicationDbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-08T01:01:41.234Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-08T01:01:41.234Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Projeto Empreendedor\\qenem\\qenem\\Program.cs",
               "RelativeDocumentMoniker": "qenem\\Program.cs",
@@ -68,16 +75,8 @@
               "EditorCaption": ""
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "UsuarioModel.cs",
               "DocumentMoniker": "D:\\Projeto Empreendedor\\qenem\\qenem\\Models\\UsuarioModel.cs",
               "RelativeDocumentMoniker": "qenem\\Models\\UsuarioModel.cs",
@@ -85,8 +84,7 @@
               "RelativeToolTip": "qenem\\Models\\UsuarioModel.cs",
               "ViewState": "AgIAACMAAAAAAAAAAAAswCYAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-07T23:48:46.295Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-07T23:48:46.295Z"
             }
           ]
         }
