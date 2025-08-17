@@ -103,7 +103,7 @@ namespace qenem.Areas.Identity.Pages.Account
 
 
             [Required]
-            [Display(Name = "Tipo de Usuário")]
+            [Display(Name = "Tipo de Usuï¿½rio")]
             public string Role { get; set; }
         }
 
@@ -118,7 +118,6 @@ namespace qenem.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
@@ -133,15 +132,16 @@ namespace qenem.Areas.Identity.Pages.Account
 
                     if (!string.IsNullOrEmpty(Input.Role))
                     {
-                        // Cria a role caso não exista
+                        // Cria a role caso nï¿½o exista
                         if (!await _roleManager.RoleExistsAsync(Input.Role))
                         {
                             await _roleManager.CreateAsync(new IdentityRole(Input.Role));
                         }
 
-                        // Adiciona o usuário à role
+                        // Adiciona o usuï¿½rio ï¿½ role
                         await _userManager.AddToRoleAsync(user, Input.Role);
                     }
+
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -164,17 +164,15 @@ namespace qenem.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                 }
-
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
+            // If we got this far, something failed, redisplay form
             return Page();
         }
-
-
         private IdentityUser CreateUser()
         {
             try
