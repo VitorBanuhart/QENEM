@@ -1,0 +1,25 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Criar Usuário";
+}
+
+<h2>Criar Usuário</h2>
+
+<form method="post">
+    <div>
+        <label>Email</label>
+        <input type="email" name="email" required />
+    </div>
+    <div>
+        <label>Senha</label>
+        <input type="password" name="password" required />
+    </div>
+    <div>
+        <label>Role</label>
+        <select name="role">
+            <option value="">Usuário</option>
+            <option value="Admin">Admin</option>
+        </select>
+    </div>
+    <button type="submit">Criar</button>
+</form>

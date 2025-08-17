@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projeto Empreendedor\\qenem\\qenem\\qenem.csproj": {}
+    "D:\\Projeto Empreendedor\\tudodoZero\\qenem\\qenem.csproj": {}
   },
   "projects": {
-    "D:\\Projeto Empreendedor\\qenem\\qenem\\qenem.csproj": {
+    "D:\\Projeto Empreendedor\\tudodoZero\\qenem\\qenem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projeto Empreendedor\\qenem\\qenem\\qenem.csproj",
+        "projectUniqueName": "D:\\Projeto Empreendedor\\tudodoZero\\qenem\\qenem.csproj",
         "projectName": "qenem",
-        "projectPath": "D:\\Projeto Empreendedor\\qenem\\qenem\\qenem.csproj",
+        "projectPath": "D:\\Projeto Empreendedor\\tudodoZero\\qenem\\qenem.csproj",
         "packagesPath": "C:\\Users\\erikc\\.nuget\\packages\\",
-        "outputPath": "D:\\Projeto Empreendedor\\qenem\\qenem\\obj\\",
+        "outputPath": "D:\\Projeto Empreendedor\\tudodoZero\\qenem\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -22,15 +22,15 @@
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {}
           }
         },
@@ -47,10 +47,14 @@
         "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
-            "Microsoft.EntityFrameworkCore": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.8, )"
+            },
+            "Microsoft.AspNetCore.Identity.UI": {
               "target": "Package",
               "version": "[9.0.8, )"
             },
@@ -67,10 +71,6 @@
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
               "version": "[9.0.0, )"
-            },
-            "Swashbuckle.AspNetCore": {
-              "target": "Package",
-              "version": "[9.0.3, )"
             }
           },
           "imports": [
