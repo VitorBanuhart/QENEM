@@ -24,7 +24,6 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
