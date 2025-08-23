@@ -1,0 +1,222 @@
+@model qenem.ViewModels.UsuarioAreaViewModel
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Seleção de Áreas de Interesse</title>
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        body {
+            margin: 0;
+            background: #f7f7f8;
+            color: #111;
+        }
+
+        .wrap {
+            max-width: 720px;
+            margin: 48px auto;
+            padding: 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 24px rgba(0,0,0,.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+        }
+
+        p.desc {
+            color: #555;
+        }
+
+        fieldset {
+            border: 1px solid #e6e6e6;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        legend {
+            padding: 0 8px;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 8px 16px;
+            margin-top: 8px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+            label:hover {
+                background: #f5f5f5;
+            }
+
+        .status {
+            margin: 12px 0 0;
+            font-size: .95rem;
+        }
+
+            .status strong {
+                font-weight: 700;
+            }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        button[type="submit"] {
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 12px;
+            font-weight: 600;
+            background: #d9d9de;
+            color: #6b6b75;
+            cursor: not-allowed;
+            transition: transform .06s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+        }
+
+            button[type="submit"].enabled {
+                cursor: pointer;
+                background: #3b82f6;
+                color: #fff;
+                box-shadow: 0 6px 18px rgba(59,130,246,.25);
+            }
+
+                button[type="submit"].enabled:active {
+                    transform: translateY(1px);
+                    box-shadow: 0 2px 10px rgba(59,130,246,.25);
+                }
+
+        .hint {
+            color: #6b7280;
+            font-size: .9rem;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+            .alert.success {
+                background-color: #e6ffed;
+                color: #146c43;
+                border: 1px solid #b5e0c5;
+            }
+
+            .alert.error {
+                background-color: #ffe6e6;
+                color: #a94442;
+                border: 1px solid #f5c6cb;
+            }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>Selecione suas áreas de interesse</h1>
+        <p class="desc">
+            <span class="hint">Selecione as áreas de interesse que deseja estudar. Você pode escolher quantas quiser, mas é obrigatório selecionar pelo menos uma.</span>
+        </p>
+
+        @* Mensagem de retorno *@
+        @if (!string.IsNullOrEmpty(Model?.Mensagem))
+        {
+            var sucesso = Model.Mensagem.Contains("sucesso", System.StringComparison.OrdinalIgnoreCase);
+            <div class="alert @(sucesso ? "success" : "error")">
+                @Model.Mensagem
+            </div>
+        }
+        <form id="form-areas" asp-action="AreaInteresse" asp-controller="Users" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdUsuario" />
+
+            <fieldset aria-describedby="areasHint">
+                <legend>Áreas de interesse (escolha 1 ou mais)</legend>
+                <p id="areasHint" class="hint">Marque pelo menos uma destas opções.</p>
+                <div class="grid" id="areas">
+                    @foreach (var area in Model.Materias)
+                    {
+                        <label>
+                            <input type="checkbox"
+                                   name="AreasSelecionadas"
+                                   value="@area.IdAreaInteresse"
+                                   @(Model.AreasSelecionadas.Contains(area.IdAreaInteresse) ? "checked" : "") />
+                            @area.NomeAreaInteresse
+                        </label>
+                    }
+                </div>
+            </fieldset>
+
+            <fieldset aria-describedby="idiomasHint">
+                <legend>Linguagem estrangeira (escolha 1 ou mais)</legend>
+                <p id="idiomasHint" class="hint">Selecione ao menos uma: inglês ou espanhol.</p>
+                <div class="grid" id="idiomas">
+                    @foreach (var area in Model.Linguagens)
+                    {
+                        <label>
+                            <input type="checkbox"
+                                   name="AreasSelecionadas"
+                                   value="@area.IdAreaInteresse"
+                                   @(Model.AreasSelecionadas.Contains(area.IdAreaInteresse) ? "checked" : "") />
+                            @area.NomeAreaInteresse
+                        </label>
+                    }
+                </div>
+            </fieldset>
+
+            <div class="status" id="status">
+                Requisito: selecione pelo menos <strong>1 área</strong>.
+            </div>
+
+            <div class="actions">
+                <button type="submit" id="btnProsseguir" disabled>Prosseguir</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        (function () {
+            const form = document.getElementById('form-areas');
+            const areasBox = document.getElementById('areas');
+            const status = document.getElementById('status');
+            const btn = document.getElementById('btnProsseguir');
+
+            function hasChecked() {
+                return areasBox.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+            }
+
+            function updateState() {
+                const ready = hasChecked();
+
+                btn.disabled = !ready;
+                btn.classList.toggle('enabled', ready);
+                status.textContent = ready
+                    ? 'Tudo certo! Você pode prosseguir.'
+                    : 'Requisito: selecione pelo menos 1 área.';
+            }
+
+            form.addEventListener('change', updateState);
+            document.addEventListener('DOMContentLoaded', updateState);
+        })();
+    </script>
+</body>
+</html>

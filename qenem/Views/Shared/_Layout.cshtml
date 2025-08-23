@@ -22,12 +22,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
+
                         <li class="nav-item" >
-                            <a class="nav-link text-dark" asp-area="" asp-controller="AreaInteresse" asp-action="Index">Area de Interesse</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="AreaInteresse">Area de Interesse</a>
                         </li>
-                        }
+                        
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
