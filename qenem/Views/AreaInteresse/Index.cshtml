@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Seleção de Áreas de Interesse</title>
+    <title>Seleï¿½ï¿½o de ï¿½reas de Interesse</title>
     <style>
         :root {
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -112,33 +112,33 @@
 </head>
 <body>
     <main class="wrap">
-        <h1>Selecione suas áreas de interesse</h1>
+        <h1>Selecione suas ï¿½reas de interesse</h1>
         <p class="desc">
-            <span class="hint">Selecione as áreas de interesse que deseja estudar. Você pode escolher quantas áreas quiser, mas é obrigatório selecionar pelo menos uma área e um idioma estrangeiro para prosseguir.</span>
+            <span class="hint">Selecione as ï¿½reas de interesse que deseja estudar. Vocï¿½ pode escolher quantas ï¿½reas quiser, mas ï¿½ obrigatï¿½rio selecionar pelo menos uma ï¿½rea e um idioma estrangeiro para prosseguir.</span>
         </p><form id="form-areas" action="#" method="post" novalidate>
-            <!-- Grupo A: Áreas gerais -->
+            <!-- Grupo A: ï¿½reas gerais -->
             <fieldset aria-describedby="areasHint">
-                <legend>Áreas de interesse (escolha 1 ou mais)</legend>
-                <p id="areasHint" class="hint">Marque pelo menos uma destas opções.</p>
+                <legend>ï¿½reas de interesse (escolha 1 ou mais)</legend>
+                <p id="areasHint" class="hint">Marque pelo menos uma destas opï¿½ï¿½es.</p>
                 <div class="grid" id="areas">
-                    <label><input type="checkbox" name="areas[]" value="ciencias_humanas"> Ciências Humanas</label>
-                    <label><input type="checkbox" name="areas[]" value="ciencias_natureza"> Ciências da Natureza</label>
+                    <label><input type="checkbox" name="areas[]" value="ciencias_humanas"> Ciï¿½ncias Humanas</label>
+                    <label><input type="checkbox" name="areas[]" value="ciencias_natureza"> Ciï¿½ncias da Natureza</label>
                     <label><input type="checkbox" name="areas[]" value="linguagens"> Linguagens</label>
-                    <label><input type="checkbox" name="areas[]" value="matematica"> Matemática</label>
+                    <label><input type="checkbox" name="areas[]" value="matematica"> Matemï¿½tica</label>
                 </div>
             </fieldset>
 
             <!-- Grupo B: Idiomas estrangeiros -->
             <fieldset aria-describedby="idiomasHint">
                 <legend>Linguagem estrangeira (escolha 1 ou mais)</legend>
-                <p id="idiomasHint" class="hint">Selecione ao menos uma: inglês ou espanhol.</p>
+                <p id="idiomasHint" class="hint">Selecione ao menos uma: inglï¿½s ou espanhol.</p>
                 <div class="grid" id="idiomas">
-                    <label><input type="checkbox" name="idiomas[]" value="ingles"> Inglês</label>
+                    <label><input type="checkbox" name="idiomas[]" value="ingles"> Inglï¿½s</label>
                     <label><input type="checkbox" name="idiomas[]" value="espanhol"> Espanhol</label>
                 </div>
             </fieldset>
 
-            <p class="status" id="status">Requisito: selecione <strong>1+ área</strong> e <strong>1+ idioma</strong> para prosseguir.</p>
+            <p class="status" id="status">Requisito: selecione <strong>1+ ï¿½rea</strong> e <strong>1+ idioma</strong> para prosseguir.</p>
 
             <div class="actions">
                 <button type="submit" id="btnProsseguir" aria-disabled="true" disabled>Prosseguir</button>
@@ -168,26 +168,26 @@
             btn.classList.toggle('enabled', ready);
 
             status.textContent = ready
-              ? 'Tudo certo! Você pode prosseguir.'
-              : 'Requisito: selecione 1+ área e 1+ idioma para prosseguir.';
+              ? 'Tudo certo! Vocï¿½ pode prosseguir.'
+              : 'Requisito: selecione 1+ ï¿½rea e 1+ idioma para prosseguir.';
           }
 
-          // Inicializa estado e observa mudanças
+          // Inicializa estado e observa mudanï¿½as
           form.addEventListener('change', updateState);
           document.addEventListener('DOMContentLoaded', updateState);
 
           // Exemplo de envio (aqui apenas prevenimos e mostramos os valores no console)
           form.addEventListener('submit', function(e) {
             if (btn.disabled) {
-              // Evita envio se alguém tentar forçar
+              // Evita envio se alguï¿½m tentar forï¿½ar
               e.preventDefault();
               return;
             }
             e.preventDefault();
             const data = new FormData(form);
             const payload = Object.fromEntries([...data.entries()]);
-            console.log('Dados do formulário:', payload);
-            alert('Formulário válido! (simulação de envio)');
+            console.log('Dados do formulï¿½rio:', payload);
+            alert('Formulï¿½rio vï¿½lido! (simulaï¿½ï¿½o de envio)');
           });
 
           // Estado inicial
