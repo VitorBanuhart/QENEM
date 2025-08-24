@@ -194,28 +194,37 @@
     </main>
 
     <script>
-        (function () {
-            const form = document.getElementById('form-areas');
-            const areasBox = document.getElementById('areas');
-            const status = document.getElementById('status');
-            const btn = document.getElementById('btnProsseguir');
+        (function() {
+          const form = document.getElementById('form-areas');
+          const areasBox = document.getElementById('areas');
+          const idiomasBox = document.getElementById('idiomas');
+          const status = document.getElementById('status');
+          const btn = document.getElementById('btnProsseguir');
 
-            function hasChecked() {
-                return areasBox.querySelectorAll('input[type="checkbox"]:checked').length > 0;
-            }
+          function hasChecked(container) {
+            return container.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+          }
 
-            function updateState() {
-                const ready = hasChecked();
+          function updateState() {
+            const okAreas = hasChecked(areasBox);
+            const okIdiomas = hasChecked(idiomasBox);
+            const ready = okAreas && okIdiomas;
 
-                btn.disabled = !ready;
-                btn.classList.toggle('enabled', ready);
-                status.textContent = ready
-                    ? 'Tudo certo! Você pode prosseguir.'
-                    : 'Requisito: selecione pelo menos 1 área.';
-            }
+            btn.disabled = !ready;
+            btn.setAttribute('aria-disabled', String(!ready));
+            btn.classList.toggle('enabled', ready);
 
-            form.addEventListener('change', updateState);
-            document.addEventListener('DOMContentLoaded', updateState);
+            status.textContent = ready
+              ? 'Tudo certo! Você pode prosseguir.'
+              : 'Requisito: selecione 1+ área e 1+ idioma para prosseguir.';
+          }
+
+          // Inicializa estado e observa mudanças
+          form.addEventListener('change', updateState);
+          document.addEventListener('DOMContentLoaded', updateState);
+
+          // Estado inicial
+          updateState();
         })();
     </script>
 </body>

@@ -41,8 +41,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-app.Run();
-
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -52,12 +50,14 @@ using (var scope = app.Services.CreateScope())
         context.AreasInteresse.AddRange(
             new AreaInteresse { NomeAreaInteresse = "Ciências Humanas" },
             new AreaInteresse { NomeAreaInteresse = "Matemática" },
-            new AreaInteresse { NomeAreaInteresse = "Ciências da Natureza"},
-            new AreaInteresse { NomeAreaInteresse = "Linguagens"},
-            new AreaInteresse { NomeAreaInteresse = "Inglês"},
-            new AreaInteresse { NomeAreaInteresse = "Espanhol"}
+            new AreaInteresse { NomeAreaInteresse = "Ciências da Natureza" },
+            new AreaInteresse { NomeAreaInteresse = "Linguagens" },
+            new AreaInteresse { NomeAreaInteresse = "Inglês" },
+            new AreaInteresse { NomeAreaInteresse = "Espanhol" }
         );
 
         context.SaveChanges();
     }
 }
+
+app.Run();
