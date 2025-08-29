@@ -1,0 +1,25 @@
+﻿namespace qenem.Models
+{
+
+    public class Question
+    {
+        public string title { get; set; }
+        public int index { get; set; }
+        public int year { get; set; }
+        public string? language { get; set; }
+        public string discipline { get; set; }
+        public string context { get; set; }
+        public List<string> files { get; set; }
+        public string correctAlternative { get; set; }
+        public string alternativesIntroduction { get; set; }
+        public List<Alternative> alternatives { get; set; }
+    }
+
+    public class Alternative
+    {
+        public string letter { get; set; }
+        public string text { get; set; }
+        public string? file { get; set; }
+        public bool isCorrect { get; set; }
+    }
+}
