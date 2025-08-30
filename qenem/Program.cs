@@ -2,22 +2,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using qenem.Data;
+using qenem.Models; 
 using qenem.Services;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//Register Identity services
-//builder.Services.AddDefaultIdentity<IdentityUser>(options =>
-//    options.SignIn.RequireConfirmedAccount = false)
-//    .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
 })
@@ -25,27 +22,42 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
-
+app.UseHttpsRedirection();
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (!context.AreasInteresse.Any())
+    {
+        context.AreasInteresse.AddRange(
+            new AreaInteresse { NomeAreaInteresse = "Ciências Humanas" },
+            new AreaInteresse { NomeAreaInteresse = "Matemática" },
+            new AreaInteresse { NomeAreaInteresse = "Ciências da Natureza" },
+            new AreaInteresse { NomeAreaInteresse = "Linguagens" },
+            new AreaInteresse { NomeAreaInteresse = "Inglês" },
+            new AreaInteresse { NomeAreaInteresse = "Espanhol" }
+        );
+
+        context.SaveChanges();
+    }
+}
 
 app.Run();
