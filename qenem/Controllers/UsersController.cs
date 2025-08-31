@@ -40,7 +40,7 @@ public class UsersController : Controller
         // ▼▼▼ LÓGICA DE SEPARAÇÃO ADICIONADA AQUI ▼▼▼
 
         // 1. Define quais nomes consideramos como "linguagens". Você pode customizar esta lista.
-        var nomesLinguagens = new List<string> { "Inglês", "Espanhol" };
+        var nomesLinguagens = new List<string> { "ingles", "espanhol" };
 
         // 2. Busca todas as áreas do banco de uma só vez.
         var todasAsAreasDoBanco = await _context.AreasInteresse.OrderBy(a => a.NomeAreaInteresse).ToListAsync();

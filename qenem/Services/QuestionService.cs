@@ -56,8 +56,8 @@ namespace qenem.Services
             var allQuestions = LoadQuestions();
 
             var filtered = allQuestions
-                 .Where(q => disciplines.Any(d =>
-                     q.discipline.Equals(d, StringComparison.OrdinalIgnoreCase)))
+                 .Where(q => q.discipline != null &&
+                 disciplines.Any(d => q.discipline.Equals(d, StringComparison.OrdinalIgnoreCase)))
                  .OrderBy(_ => Guid.NewGuid()) // shuffle
                  .Take(10)
                  .ToList();
