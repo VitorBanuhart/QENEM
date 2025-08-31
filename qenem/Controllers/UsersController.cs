@@ -35,6 +35,8 @@ public class UsersController : Controller
             .Select(ua => ua.Id_AreaInteresse)
             .ToListAsync();
 
+
+
         // ▼▼▼ LÓGICA DE SEPARAÇÃO ADICIONADA AQUI ▼▼▼
 
         // 1. Define quais nomes consideramos como "linguagens". Você pode customizar esta lista.

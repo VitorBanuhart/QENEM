@@ -48,12 +48,12 @@ using (var scope = app.Services.CreateScope())
     if (!context.AreasInteresse.Any())
     {
         context.AreasInteresse.AddRange(
-            new AreaInteresse { NomeAreaInteresse = "Ciências Humanas" },
-            new AreaInteresse { NomeAreaInteresse = "Matemática" },
-            new AreaInteresse { NomeAreaInteresse = "Ciências da Natureza" },
-            new AreaInteresse { NomeAreaInteresse = "Linguagens" },
-            new AreaInteresse { NomeAreaInteresse = "Inglês" },
-            new AreaInteresse { NomeAreaInteresse = "Espanhol" }
+            new AreaInteresse { NomeAreaInteresse = "ciencias-humanas" },
+            new AreaInteresse { NomeAreaInteresse = "ciencias-natureza" },
+            new AreaInteresse { NomeAreaInteresse = "linguagens" },
+            new AreaInteresse { NomeAreaInteresse = "matematica" },
+            new AreaInteresse { NomeAreaInteresse = "espanhol" },
+            new AreaInteresse { NomeAreaInteresse = "ingles" }
         );
 
         context.SaveChanges();
