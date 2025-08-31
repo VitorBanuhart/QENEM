@@ -31,14 +31,13 @@
 
                     <h4>@questao.title (@questao.year)</h4>
                     <p><strong>Disciplina:</strong> @questao.discipline</p>
-
-                    @if (!string.IsNullOrEmpty(questao.context))
+                    <p>@questao.context</p>
+                    @if (questao.files.Count != 0)
                     {
                         <div class="mb-3">
                             <img src="@questao.context.Replace("![](", "").Replace(")", "")" class="img-fluid" alt="Imagem da questão" />
                         </div>
                     }
-
                     <p>@questao.alternativesIntroduction</p>
 
                     <div class="list-group">

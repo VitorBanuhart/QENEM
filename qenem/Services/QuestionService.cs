@@ -55,20 +55,54 @@ namespace qenem.Services
 
             var allQuestions = LoadQuestions();
 
-            var filtered = allQuestions
-                 .Where(q => q.discipline != null &&
-                 disciplines.Any(d => q.discipline.Equals(d, StringComparison.OrdinalIgnoreCase)))
-                 .OrderBy(_ => Guid.NewGuid()) // shuffle
-                 .Take(10)
-                 .ToList();
+            // Filtra apenas pelas disciplinas escolhidas
+            var filteredByDiscipline = allQuestions
+                .Where(q => disciplines.Contains(q.discipline, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            // Calcula quantas questões por disciplina (divisão equilibrada)
+            int totalQuestoes = 13;
+            int baseCount = totalQuestoes / disciplines.Count; // mínimo por disciplina
+            int sobra = totalQuestoes % disciplines.Count;     // se não divide certinho, sorteia as sobras
+
+            var random = new Random();
+            var result = new List<Question>();
+
+            foreach (var disc in disciplines)
+            {
+                var questoesDisciplina = filteredByDiscipline
+                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(_ => random.Next())
+                    .Take(baseCount)
+                    .ToList();
+
+                result.AddRange(questoesDisciplina);
+            }
+
+            // Distribui as sobras sorteando disciplinas
+            var disciplinasSorteadas = disciplines
+                .OrderBy(_ => random.Next())
+                .Take(sobra)
+                .ToList();
+
+            foreach (var disc in disciplinasSorteadas)
+            {
+                var questaoExtra = filteredByDiscipline
+                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase) && !result.Contains(q))
+                    .OrderBy(_ => random.Next())
+                    .FirstOrDefault();
+
+                if (questaoExtra != null)
+                    result.Add(questaoExtra);
+            }
 
             // Atualiza progresso diário
             if (!_respostasPorDia.ContainsKey(userId))
                 _respostasPorDia[userId] = 0;
 
-            _respostasPorDia[userId] += filtered.Count;
+            _respostasPorDia[userId] += result.Count;
 
-            return filtered;
+            return result;
         }
     }
 }
