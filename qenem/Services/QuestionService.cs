@@ -8,7 +8,7 @@ namespace qenem.Services
         private readonly string _jsonDirectory;
         private static Dictionary<string, int> _respostasPorDia = new(); // controla limite diário por usuário (mock)
 
-        public QuestionService(string jsonDirectory)
+        public QuestionService(SeuProjeto.Services.EnemRepository repo, string jsonDirectory)
         {
             _jsonDirectory = jsonDirectory;
         }
@@ -20,9 +20,16 @@ namespace qenem.Services
         {
             var questions = new List<Question>();
 
-            foreach (var file in Directory.GetFiles(_jsonDirectory, "*.json", SearchOption.AllDirectories))
+            var yearDirectories = Directory.GetDirectories(_jsonDirectory);
+
+            foreach (var dir in yearDirectories) { 
+
+                foreach (var file in Directory.GetFiles(dir, "*.json", SearchOption.AllDirectories))
             {
                 var json = File.ReadAllText(file);
+                Console.WriteLine($"Arquivo: {file}");
+                Console.WriteLine($"Conteúdo JSON:\n{json}");
+                
                 var question = JsonSerializer.Deserialize<Question>(json, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
@@ -33,7 +40,7 @@ namespace qenem.Services
                     questions.Add(question);
                 }
             }
-
+            }
             return questions;
         }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using qenem.Data;
 using qenem.Models;
 using qenem.Services;
@@ -11,9 +12,9 @@ namespace qenem.Controllers
 {
     public class ListarQuestoesController : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var questoesParaTeste = GerarQuestoesMock();
+            var questoesParaTeste = await GerarQuestoesMock();
             return View(questoesParaTeste);
         }
 
@@ -33,7 +34,6 @@ namespace qenem.Controllers
         // Método privado para criar uma lista de questões para teste
         private async Task<List<Question>> GerarQuestoesMock()
         {
-            var lista = new List<Question>();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var usuario = await _userManager.GetUserAsync(User);
@@ -43,21 +43,15 @@ namespace qenem.Controllers
                 .Select(ua => ua.Id_AreaInteresse)
                 .ToListAsync();
 
-            var aresSelecionasString = await _context.AreasInteresse
-                .Where(ua => ua.IdAreaInteresse == areasSelecionadasInt.ToList().Count)
-                .Select(ua => ua.NomeAreaInteresse).ToListAsync();
+            var areasSelecionadasString = await _context.AreasInteresse
+                .Where(ai => areasSelecionadasInt.Contains(ai.IdAreaInteresse))
+                .Select(ai => ai.NomeAreaInteresse)
+                .ToListAsync();
 
+            var questions = _questionService.GetRandomQuestions(areasSelecionadasString, userId);
 
-            var questions = _questionService.GetRandomQuestions(aresSelecionasString, userId);
-
-
-            //for (int i = 1; i <= 10; i++)
-            //{
-            //    lista.Add(questions[i]);
-                
-            //}
-
-            return questions;
+            return questions; // já retornando direto, sem recriar o objeto
         }
+
     }
 }

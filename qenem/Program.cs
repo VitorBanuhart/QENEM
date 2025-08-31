@@ -4,10 +4,23 @@ using Microsoft.EntityFrameworkCore;
 using qenem.Data;
 using qenem.Models; 
 using qenem.Services;
+using SeuProjeto.Services;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<JsonDataService>(sp =>
+{
+    var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
+    return new JsonDataService(dataPath);
+});
+builder.Services.AddSingleton<EnemRepository>();
+builder.Services.AddSingleton<QuestionService>(sp =>
+{
+    var repo = sp.GetRequiredService<EnemRepository>();
+    var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
+    return new QuestionService(repo, dataPath);
+});
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
