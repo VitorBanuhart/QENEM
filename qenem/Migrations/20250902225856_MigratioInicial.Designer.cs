@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250823233227_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20250902225856_MigratioInicial")]
+    partial class MigratioInicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

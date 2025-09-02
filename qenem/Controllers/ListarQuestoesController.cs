@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.AspNetCore.Http;
 using qenem.Data;
 using qenem.Models;
 using qenem.Services;
@@ -12,6 +13,9 @@ namespace qenem.Controllers
 {
     public class ListarQuestoesController : Controller
     {
+        private readonly QuestionService _questionService;
+        private const string QuestoesExibidasKey = "QuestoesExibidas";
+
         public async Task<IActionResult> Index()
         {
             var questoesParaTeste = await GerarQuestoesMock();
@@ -21,7 +25,6 @@ namespace qenem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private QuestionService _questionService;
 
         public ListarQuestoesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, QuestionService questionService)
         {
@@ -48,7 +51,20 @@ namespace qenem.Controllers
                 .Select(ai => ai.NomeAreaInteresse)
                 .ToListAsync();
 
-            var questions = _questionService.GetRandomQuestions(areasSelecionadasString, userId);
+            var idiomasSelecionados = new List<string> { };
+
+            if (areasSelecionadasString.Contains("ingles"))
+            {
+                areasSelecionadasString.Remove("ingles");
+                idiomasSelecionados.Add("ingles");
+            }
+            if (areasSelecionadasString.Contains("espanhol"))
+            {
+                areasSelecionadasString.Remove("espanhol");
+                idiomasSelecionados.Add("espanhol");
+            }
+
+            var questions = _questionService.GetRandomQuestions(areasSelecionadasString, idiomasSelecionados, userId);
 
             return questions; // já retornando direto, sem recriar o objeto
         }

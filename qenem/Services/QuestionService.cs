@@ -7,9 +7,11 @@ namespace qenem.Services
     {
         private readonly string _jsonDirectory;
         private static Dictionary<string, int> _respostasPorDia = new(); // controla limite diário por usuário (mock)
+        private readonly SeuProjeto.Services.EnemRepository _repo;
 
         public QuestionService(SeuProjeto.Services.EnemRepository repo, string jsonDirectory)
         {
+            _repo = repo;
             _jsonDirectory = jsonDirectory;
         }
 
@@ -47,7 +49,7 @@ namespace qenem.Services
         /// <summary>
         /// Retorna 10 questões aleatórias de acordo com a disciplina escolhida.
         /// </summary>
-        public List<Question> GetRandomQuestions(List<string> disciplines, string userId)
+        public List<Question> GetRandomQuestions(List<string> disciplines, List<string> languages, string userId)
         {
             // Checa limite diário
             if (_respostasPorDia.ContainsKey(userId) && _respostasPorDia[userId] >= 450)
@@ -57,13 +59,13 @@ namespace qenem.Services
 
             // Filtra apenas pelas disciplinas escolhidas
             var filteredByDiscipline = allQuestions
-                .Where(q => disciplines.Contains(q.discipline, StringComparer.OrdinalIgnoreCase))
+                .Where(q => disciplines.Contains(q.discipline, StringComparer.OrdinalIgnoreCase) || languages.Contains(q.language, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
             // Calcula quantas questões por disciplina (divisão equilibrada)
-            int totalQuestoes = 13;
-            int baseCount = totalQuestoes / disciplines.Count; // mínimo por disciplina
-            int sobra = totalQuestoes % disciplines.Count;     // se não divide certinho, sorteia as sobras
+            int totalQuestoes = 10;
+            int baseCount = totalQuestoes / (disciplines.Count + languages.Count); // mínimo por disciplina
+            int sobra = totalQuestoes % (disciplines.Count + languages.Count);     // se não divide certinho, sorteia as sobras
 
             var random = new Random();
             var result = new List<Question>();
@@ -71,7 +73,18 @@ namespace qenem.Services
             foreach (var disc in disciplines)
             {
                 var questoesDisciplina = filteredByDiscipline
-                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase))
+                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase) )
+                    .OrderBy(_ => random.Next())
+                    .Take(baseCount)
+                    .ToList();
+
+                result.AddRange(questoesDisciplina);
+            }
+
+            foreach (var lang in languages)
+            {
+                var questoesDisciplina = filteredByDiscipline
+                    .Where(q => q.discipline.Equals("linguagens", StringComparison.OrdinalIgnoreCase))
                     .OrderBy(_ => random.Next())
                     .Take(baseCount)
                     .ToList();
@@ -80,7 +93,12 @@ namespace qenem.Services
             }
 
             // Distribui as sobras sorteando disciplinas
-            var disciplinasSorteadas = disciplines
+
+            var todasDisciplinas = new List<string> { };
+            todasDisciplinas.AddRange(disciplines);
+            todasDisciplinas.AddRange(languages);
+
+            var disciplinasSorteadas = todasDisciplinas
                 .OrderBy(_ => random.Next())
                 .Take(sobra)
                 .ToList();
@@ -89,6 +107,17 @@ namespace qenem.Services
             {
                 var questaoExtra = filteredByDiscipline
                     .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase) && !result.Contains(q))
+                    .OrderBy(_ => random.Next())
+                    .FirstOrDefault();
+
+                if (questaoExtra != null)
+                    result.Add(questaoExtra);
+            }
+
+            foreach (var lang in disciplinasSorteadas)
+            {
+                var questaoExtra = filteredByDiscipline
+                    .Where(q => q.discipline.Equals("linguagens", StringComparison.OrdinalIgnoreCase))
                     .OrderBy(_ => random.Next())
                     .FirstOrDefault();
 

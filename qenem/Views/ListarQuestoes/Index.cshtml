@@ -31,6 +31,10 @@
 
                     <h4>@questao.title (@questao.year)</h4>
                     <p><strong>Disciplina:</strong> @questao.discipline</p>
+                    @if (questao.language != null)
+                    {
+                        <p><strong>Língua:</strong> @questao.language</p>
+                    }
                     <p>@questao.context</p>
                     @if (questao.files.Count != 0)
                     {
