@@ -3,6 +3,7 @@
 
     public class Question
     {
+        public int id { get; set; } 
         public string title { get; set; }
         public int index { get; set; }
         public int year { get; set; }
@@ -13,6 +14,7 @@
         public string correctAlternative { get; set; }
         public string alternativesIntroduction { get; set; }
         public List<Alternative> alternatives { get; set; }
+        public string UniqueId { get; set; } 
     }
 
     public class Alternative

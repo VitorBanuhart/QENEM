@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class MigratioInicial : Migration
+    public partial class CriacaoTabelaAreasInteresse : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

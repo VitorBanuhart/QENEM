@@ -39,6 +39,7 @@ namespace qenem.Services
 
                 if (question != null)
                 {
+                    question.UniqueId = file;
                     questions.Add(question);
                 }
             }
@@ -64,68 +65,52 @@ namespace qenem.Services
 
             // Calcula quantas questões por disciplina (divisão equilibrada)
             int totalQuestoes = 10;
-            int baseCount = totalQuestoes / (disciplines.Count + languages.Count); // mínimo por disciplina
-            int sobra = totalQuestoes % (disciplines.Count + languages.Count);     // se não divide certinho, sorteia as sobras
-
             var random = new Random();
             var result = new List<Question>();
+            var usedQuestionUniqueIds = new HashSet<string>();
+            var allCategories = disciplines.Concat(languages).ToList();
 
-            foreach (var disc in disciplines)
+            if (!allCategories.Any() || !filteredByDiscipline.Any())
+                return result; // Retorna vazio se não houver categorias ou questões disponíveis
+
+            // Loop para adicionar uma questão por vez, de forma cíclica e balanceada
+            for (int i = 0; i < totalQuestoes; i++)
             {
-                var questoesDisciplina = filteredByDiscipline
-                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase) )
-                    .OrderBy(_ => random.Next())
-                    .Take(baseCount)
+                // Seleciona a próxima categoria no ciclo (ex: Mat -> Fis -> Qui -> Mat ...)
+                string category = allCategories[i % allCategories.Count];
+                bool isDiscipline = disciplines.Contains(category, StringComparer.OrdinalIgnoreCase);
+
+                // Busca todas as questões disponíveis e ainda não usadas para a categoria da vez
+                var potentialQuestions = filteredByDiscipline
+                    .Where(q => !usedQuestionUniqueIds.Contains(q.UniqueId) &&
+                                (isDiscipline ? q.discipline != null && q.discipline.Equals(category, StringComparison.OrdinalIgnoreCase)
+                                               : q.language != null && q.language.Equals(category, StringComparison.OrdinalIgnoreCase)))
                     .ToList();
 
-                result.AddRange(questoesDisciplina);
+                if (potentialQuestions.Any())
+                {
+                    // Dentre as disponíveis, seleciona uma de forma aleatória
+                    var questionToAdd = potentialQuestions[random.Next(potentialQuestions.Count)];
+                    result.Add(questionToAdd);
+                    usedQuestionUniqueIds.Add(questionToAdd.UniqueId);
+                }
             }
 
-            foreach (var lang in languages)
+            // Se, mesmo após o ciclo, alguma categoria se esgotou e não atingimos as 10 questões,
+            // preenchemos o restante com o que sobrou de QUALQUER outra categoria.
+            // Isso garante que o resultado final sempre terá 10 questões, se houver disponibilidade.
+            if (result.Count < totalQuestoes && filteredByDiscipline.Count > result.Count)
             {
-                var questoesDisciplina = filteredByDiscipline
-                    .Where(q => q.discipline.Equals("linguagens", StringComparison.OrdinalIgnoreCase))
+                int needed = totalQuestoes - result.Count;
+                var extraQuestions = filteredByDiscipline
+                    .Where(q => !usedQuestionUniqueIds.Contains(q.UniqueId))
                     .OrderBy(_ => random.Next())
-                    .Take(baseCount)
+                    .Take(needed)
                     .ToList();
 
-                result.AddRange(questoesDisciplina);
+                result.AddRange(extraQuestions);
             }
 
-            // Distribui as sobras sorteando disciplinas
-
-            var todasDisciplinas = new List<string> { };
-            todasDisciplinas.AddRange(disciplines);
-            todasDisciplinas.AddRange(languages);
-
-            var disciplinasSorteadas = todasDisciplinas
-                .OrderBy(_ => random.Next())
-                .Take(sobra)
-                .ToList();
-
-            foreach (var disc in disciplinasSorteadas)
-            {
-                var questaoExtra = filteredByDiscipline
-                    .Where(q => q.discipline.Equals(disc, StringComparison.OrdinalIgnoreCase) && !result.Contains(q))
-                    .OrderBy(_ => random.Next())
-                    .FirstOrDefault();
-
-                if (questaoExtra != null)
-                    result.Add(questaoExtra);
-            }
-
-            foreach (var lang in disciplinasSorteadas)
-            {
-                var questaoExtra = filteredByDiscipline
-                    .Where(q => q.discipline.Equals("linguagens", StringComparison.OrdinalIgnoreCase))
-                    .OrderBy(_ => random.Next())
-                    .FirstOrDefault();
-
-                if (questaoExtra != null)
-                    result.Add(questaoExtra);
-            }
-
-            // Atualiza progresso diário
             if (!_respostasPorDia.ContainsKey(userId))
                 _respostasPorDia[userId] = 0;
 
