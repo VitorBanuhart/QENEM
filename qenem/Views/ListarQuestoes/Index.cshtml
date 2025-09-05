@@ -1,8 +1,8 @@
 ﻿@model List<qenem.Models.Question>
+@using Markdig
 
 @{
     ViewBag.Title = "Questões ENEM";
-    // A variável 'questoes' não é estritamente necessária, podemos usar 'Model' diretamente.
 }
 
 <div class="container mt-4">
@@ -10,11 +10,10 @@
         <div class="col-2 d-flex flex-column align-items-start">
             @for (int i = 0; i < Model.Count; i++)
             {
-                var questao = Model[i];
                 <button class="btn btn-outline-primary rounded-circle mb-2"
                         style="width: 45px; height: 45px;"
-                        onclick="mostrarQuestao(@questao.index)">
-                    @questao.index
+                        onclick="mostrarQuestao(@i)">
+                    @(i + 1)
                 </button>
             }
         </div>
@@ -22,51 +21,42 @@
         <div class="col-10">
             @for (int i = 0; i < Model.Count; i++)
             {
-                // 1. Definir uma variável para a questão atual para facilitar a leitura
                 var questao = Model[i];
 
-                // 2. CORREÇÃO PRINCIPAL: O ID da div agora é gerado corretamente com o índice da questão.
-                //    O display inicial continua mostrando apenas a primeira questão (i == 0).
-                <div id="questao-@questao.index" class="questao" style="display:@(i == 0 ? "block" : "none")">
+                <div id="questao-@i" class="questao" style="display:@(i == 0 ? "block" : "none")">
 
-                    <h4>@questao.title (@questao.year)</h4>
+                    <h4>Questão @(i + 1): @questao.title (@questao.year)</h4>
                     <p><strong>Disciplina:</strong> @questao.discipline</p>
                     @if (questao.language != null)
                     {
                         <p><strong>Língua:</strong> @questao.language</p>
                     }
-                    <p>@questao.context</p>
-                    @if (questao.files.Count != 0)
-                    {
-                        <div class="mb-3">
-                            <img src="@questao.context.Replace("![](", "").Replace(")", "")" class="img-fluid" alt="Imagem da questão" />
-                        </div>
-                    }
-                    <p>@questao.alternativesIntroduction</p>
+
+                    <p>@Html.Raw(Markdown.ToHtml(questao.context ?? ""))</p>
+                    <p>@Html.Raw(Markdown.ToHtml(questao.alternativesIntroduction ?? ""))</p>
 
                     <div class="list-group">
                         @foreach (var alt in questao.alternatives)
                         {
-                            // 3. O onclick agora passa o índice correto da questão.
                             <button class="list-group-item list-group-item-action alternativa"
                                     data-letra="@alt.letter"
-                                    onclick="selecionarAlternativa(this, '@questao.index')">
+                                    onclick="selecionarAlternativa(this, @i)">
                                 <strong>@alt.letter)</strong> @alt.text
                             </button>
                         }
                     </div>
 
                     <div class="mt-3 d-flex justify-content-between">
-                        <button class="btn btn-secondary" onclick="anterior(@questao.index)">Pergunta anterior</button>
-                        <button class="btn btn-success" onclick="verificarResposta(@questao.index, '@questao.correctAlternative')">Verificar resposta</button>
+                        <button class="btn btn-info" onclick="anterior(@i)">Pergunta anterior</button>
+                        <button class="btn btn-success" onclick="verificarResposta(@i, '@questao.correctAlternative')">Verificar resposta</button>
 
-                        @if (i == Model.Count - 1) // Verifica se é a última questão da lista
+                        @if (i == Model.Count - 1)
                         {
                             <button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar mais questões</button>
                         }
                         else
                         {
-                            <button class="btn btn-secondary" onclick="proxima(@questao.index)">Próxima pergunta</button>
+                            <button class="btn btn-info" onclick="proxima(@i)">Próxima pergunta</button>
                         }
                     </div>
 
@@ -83,49 +73,33 @@
 
 @section Scripts {
     <script>
-        // Nenhuma alteração necessária no JavaScript.
-        // Ele já estava correto, mas dependia dos IDs certos no HTML.
+        const TOTAL = @Model.Count;
 
         function mostrarQuestao(index) {
             document.querySelectorAll('.questao').forEach(q => q.style.display = 'none');
-
-            var questaoDiv = document.getElementById('questao-' + index);
-            if (questaoDiv) {
-                questaoDiv.style.display = 'block';
-            }
+            const div = document.getElementById('questao-' + index);
+            if (div) div.style.display = 'block';
         }
 
         function selecionarAlternativa(btn, questaoIndex) {
-            // Este seletor agora vai funcionar corretamente pois '#questao-X' existe.
-            let alternativas = document.querySelectorAll('#questao-' + questaoIndex + ' .alternativa');
+            const alternativas = document.querySelectorAll('#questao-' + questaoIndex + ' .alternativa');
             alternativas.forEach(a => a.classList.remove('active'));
             btn.classList.add('active');
         }
 
         function verificarResposta(index, correta) {
-            // Este seletor também funcionará, resolvendo o problema 3.
-            let selecionada = document.querySelector('#questao-' + index + ' .alternativa.active');
+            const selecionada = document.querySelector('#questao-' + index + ' .alternativa.active');
             if (!selecionada) {
                 alert("Selecione uma alternativa antes de verificar.");
                 return;
             }
-            let letra = selecionada.getAttribute("data-letra");
-            if (letra === correta) {
-                alert("Resposta correta!");
-            } else {
-                alert("Resposta incorreta! A resposta correta é: " + correta);
-            }
+            const letra = selecionada.getAttribute("data-letra");
+            alert(letra === correta ? "Resposta correta!" : "Resposta incorreta! A correta é: " + correta);
         }
 
+        // Não exige alternativa selecionada para avançar
         function proxima(index) {
-            // Opcional: Adicionar verificação se o usuário respondeu antes de avançar
-            let selecionada = document.querySelector('#questao-' + index + ' .alternativa.active');
-            if (!selecionada) {
-                alert("Por favor, selecione uma resposta antes de avançar.");
-                return;
-            }
-
-            if (document.getElementById('questao-' + (index + 1))) {
+            if (index + 1 < TOTAL) {
                 mostrarQuestao(index + 1);
             } else {
                 alert("Você está na última questão.");
@@ -133,7 +107,7 @@
         }
 
         function anterior(index) {
-            if (document.getElementById('questao-' + (index - 1))) {
+            if (index - 1 >= 0) {
                 mostrarQuestao(index - 1);
             } else {
                 alert("Você está na primeira questão.");
@@ -141,22 +115,77 @@
         }
 
         function gerarMaisQuestoes() {
-            // Este código parece correto, sem necessidade de alteração.
-            fetch('/Questoes/GerarNovas', {
+            fetch('/ListarQuestoes/GerarQuestoesMock', {
                 method: 'POST'
             })
             .then(response => {
-                if (response.ok) {
-                    alert("Novas questões foram geradas!");
-                    location.reload();
-                } else {
-                    alert("Erro ao gerar novas questões.");
+                if (!response.ok) {
+                    throw new Error("Erro ao buscar novas questões.");
                 }
+                return response.json();
+            })
+            .then(novasQuestoes => {
+                atualizarQuestoes(novasQuestoes);
             })
             .catch(error => {
                 console.error("Erro:", error);
                 alert("Erro inesperado.");
             });
+        }
+
+        // Função para renderizar as questões dinamicamente
+        function atualizarQuestoes(questoes) {
+            const colQuestoes = document.querySelector('.col-10');
+            const colBotoes = document.querySelector('.col-2');
+            if (!colQuestoes || !colBotoes) return;
+
+            // Renderiza os botões de navegação
+            let botoesHtml = '';
+            for (let i = 0; i < questoes.length; i++) {
+                botoesHtml += `<button class="btn btn-outline-primary rounded-circle mb-2"
+                    style="width: 45px; height: 45px;"
+                    onclick="mostrarQuestao(${i})">${i + 1}</button>`;
+            }
+            colBotoes.innerHTML = botoesHtml;
+
+            // Renderiza as questões
+            let questoesHtml = '';
+            for (let i = 0; i < questoes.length; i++) {
+                const questao = questoes[i];
+                questoesHtml += `
+                <div id="questao-${i}" class="questao" style="display:${i == 0 ? "block" : "none"}">
+                    <h4>Questão ${i + 1}: ${questao.title} (${questao.year})</h4>
+                    <p><strong>Disciplina:</strong> ${questao.discipline}</p>
+                    ${questao.language ? `<p><strong>Língua:</strong> ${questao.language}</p>` : ""}
+                    <p>${questao.context ?? ""}</p>
+                    <p>${questao.alternativesIntroduction ?? ""}</p>
+                    <div class="list-group">
+                        ${questao.alternatives.map(alt => `
+                            <button class="list-group-item list-group-item-action alternativa"
+                                data-letra="${alt.letter}"
+                                onclick="selecionarAlternativa(this, ${i})">
+                                <strong>${alt.letter})</strong> ${alt.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="btn btn-info" onclick="anterior(${i})">Pergunta anterior</button>
+                        <button class="btn btn-success" onclick="verificarResposta(${i}, '${questao.correctAlternative}')">Verificar resposta</button>
+                        ${i == questoes.length - 1
+                            ? `<button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar mais questões</button>`
+                            : `<button class="btn btn-info" onclick="proxima(${i})">Próxima pergunta</button>`
+                        }
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-warning" onclick="alert('Funcionalidade ainda não implementada')">
+                            Adicionar a uma lista
+                        </button>
+                    </div>
+                </div>
+                `;
+            }
+            colQuestoes.innerHTML = questoesHtml;
+            window.TOTAL = questoes.length; // Atualiza variável global
         }
     </script>
 }

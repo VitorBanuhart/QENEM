@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using qenem.Data;
 using qenem.Models; 
 using qenem.Services;
-using SeuProjeto.Services;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);

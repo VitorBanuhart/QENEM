@@ -1,7 +1,7 @@
 ﻿using qenem.Models;
 using qenem.Services;
 
-namespace SeuProjeto.Services
+namespace qenem.Services
 {
     public class EnemRepository
     {

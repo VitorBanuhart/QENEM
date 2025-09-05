@@ -1,32 +1,25 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.AspNetCore.Http;
 using qenem.Data;
 using qenem.Models;
 using qenem.Services;
 using System.Security.Claims;
-
 
 namespace qenem.Controllers
 {
     public class ListarQuestoesController : Controller
     {
         private readonly QuestionService _questionService;
-        private const string QuestoesExibidasKey = "QuestoesExibidas";
-
-        public async Task<IActionResult> Index()
-        {
-            var questoesParaTeste = await GerarQuestoesMock();
-            return View(questoesParaTeste);
-        }
-
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public ListarQuestoesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, QuestionService questionService)
+        public ListarQuestoesController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            QuestionService questionService)
         {
             _context = context;
             _userManager = userManager;
@@ -34,11 +27,19 @@ namespace qenem.Controllers
             _questionService = questionService;
         }
 
-        // Método privado para criar uma lista de questões para teste
-        private async Task<List<Question>> GerarQuestoesMock()
+        private const string QuestoesExibidasKey = "QuestoesExibidas";
+
+        // Página inicial chama a versão interna que retorna lista
+        public async Task<IActionResult> Index()
+        {
+            var questoesParaTeste = await GerarQuestoesMockInterno();
+            return View(questoesParaTeste);
+        }
+
+        // 🔹 Versão interna para uso do Index (não é endpoint)
+        private async Task<List<Question>> GerarQuestoesMockInterno()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
             var usuario = await _userManager.GetUserAsync(User);
 
             var areasSelecionadasInt = await _context.UsuarioAreas
@@ -51,7 +52,7 @@ namespace qenem.Controllers
                 .Select(ai => ai.NomeAreaInteresse)
                 .ToListAsync();
 
-            var idiomasSelecionados = new List<string> { };
+            var idiomasSelecionados = new List<string>();
 
             if (areasSelecionadasString.Contains("ingles"))
             {
@@ -64,10 +65,15 @@ namespace qenem.Controllers
                 idiomasSelecionados.Add("espanhol");
             }
 
-            var questions = _questionService.GetRandomQuestions(areasSelecionadasString, idiomasSelecionados, userId);
-
-            return questions; // já retornando direto, sem recriar o objeto
+            return _questionService.GetRandomQuestions(areasSelecionadasString, idiomasSelecionados, userId);
         }
 
+        // 🔹 Endpoint público para AJAX (fetch)
+        [HttpPost]
+        public async Task<IActionResult> GerarQuestoesMock()
+        {
+            var questoes = await GerarQuestoesMockInterno();
+            return Json(questoes); // retorna JSON para o JavaScript
+        }
     }
 }

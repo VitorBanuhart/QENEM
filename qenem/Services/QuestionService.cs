@@ -7,9 +7,9 @@ namespace qenem.Services
     {
         private readonly string _jsonDirectory;
         private static Dictionary<string, int> _respostasPorDia = new(); // controla limite diário por usuário (mock)
-        private readonly SeuProjeto.Services.EnemRepository _repo;
+        private readonly qenem.Services.EnemRepository _repo;
 
-        public QuestionService(SeuProjeto.Services.EnemRepository repo, string jsonDirectory)
+        public QuestionService(qenem.Services.EnemRepository repo, string jsonDirectory)
         {
             _repo = repo;
             _jsonDirectory = jsonDirectory;
@@ -24,25 +24,26 @@ namespace qenem.Services
 
             var yearDirectories = Directory.GetDirectories(_jsonDirectory);
 
-            foreach (var dir in yearDirectories) { 
+            foreach (var dir in yearDirectories)
+            {
 
                 foreach (var file in Directory.GetFiles(dir, "*.json", SearchOption.AllDirectories))
-            {
-                var json = File.ReadAllText(file);
-                Console.WriteLine($"Arquivo: {file}");
-                Console.WriteLine($"Conteúdo JSON:\n{json}");
-                
-                var question = JsonSerializer.Deserialize<Question>(json, new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true
-                });
+                    var json = File.ReadAllText(file);
+                    Console.WriteLine($"Arquivo: {file}");
+                    Console.WriteLine($"Conteúdo JSON:\n{json}");
 
-                if (question != null)
-                {
-                    question.UniqueId = file;
-                    questions.Add(question);
+                    var question = JsonSerializer.Deserialize<Question>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    if (question != null)
+                    {
+                        question.UniqueId = file;
+                        questions.Add(question);
+                    }
                 }
-            }
             }
             return questions;
         }
