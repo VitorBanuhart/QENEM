@@ -76,6 +76,8 @@ namespace qenem.Controllers
                 return BadRequest(new { success = false, message = "Dados inválidos." });
             }
 
+            Console.WriteLine("ESTOU AQUI");
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var lista = await _context.Listas
                 .Include(l => l.ListaQuestoes)
