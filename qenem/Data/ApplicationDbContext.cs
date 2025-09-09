@@ -11,6 +11,8 @@ namespace qenem.Data
 
         public DbSet<AreaInteresse> AreasInteresse { get; set; }
         public DbSet<UsuarioArea> UsuarioAreas { get; set; }
+        public DbSet<Lista> Listas { get; set; }
+        public DbSet<ListaQuestao> ListaQuestoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
