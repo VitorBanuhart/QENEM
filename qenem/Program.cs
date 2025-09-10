@@ -8,6 +8,8 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jsonBasePath = Path.Combine(builder.Environment.ContentRootPath, "Data", "Questions");
+
 builder.Services.AddSingleton<JsonDataService>(sp =>
 {
     var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");

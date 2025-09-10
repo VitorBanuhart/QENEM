@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using qenem.Data;
 using qenem.Models;
+using qenem.Services;
 using System.Security.Claims;
 
 namespace qenem.Controllers
@@ -14,15 +15,17 @@ namespace qenem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly QuestionService _questionService;
 
         // Limites definidos pelos requisitos
         private const int MAX_LISTAS_POR_USUARIO = 10;
         private const int MAX_QUESTOES_POR_LISTA = 180;
 
-        public ListaController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public ListaController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, QuestionService questionService)
         {
             _context = context;
             _userManager = userManager;
+            _questionService = questionService;
         }
 
         // GET: /Lista (Página principal que mostra as listas do usuário)
@@ -141,7 +144,154 @@ namespace qenem.Controllers
 
             return Json(listas);
         }
+
+        // GET /Lista/Questoes?id=123  -> carrega view com as questões da lista
+        public async Task<IActionResult> Questoes(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var lista = await _context.Listas
+                .Include(l => l.ListaQuestoes)
+                .FirstOrDefaultAsync(l => l.Id == id && l.UsuarioId == userId);
+
+            if (lista == null) return NotFound();
+
+            List<Question> todasQuestoes;
+            try
+            {
+                todasQuestoes = _questionService.GetAllQuestions();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao carregar questões do disco: {ex.Message}");
+            }
+
+            // Normaliza os IDs armazenados no banco (pode já ser full path; Path.GetFullPath também lida com caminhos "limpos")
+            var questaoIdsNaListaNormalized = lista.ListaQuestoes
+                .Select(lq => {
+                    try { return Path.GetFullPath(lq.QuestaoId).Trim(); }
+                    catch { return lq.QuestaoId?.Trim() ?? ""; }
+                })
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToList();
+
+            var todasQuestoesByFullNormalized = todasQuestoes.ToDictionary(
+                q => {
+                    try { return Path.GetFullPath(q.UniqueId).Trim(); }
+                    catch { return q.UniqueId?.Trim() ?? ""; }
+                },
+                StringComparer.OrdinalIgnoreCase);
+
+            var ordenadas = new List<Question>();
+
+            foreach (var qidNormalized in questaoIdsNaListaNormalized)
+            {
+                // 1) tenta encontrar por caminho normalizado (case-insensitive)
+                if (todasQuestoesByFullNormalized.TryGetValue(qidNormalized, out var qMatch))
+                {
+                    ordenadas.Add(qMatch);
+                    continue;
+                }
+
+                // 2) fallback: tentar comparar apenas pelo nome do arquivo (ex: questionsdetails.json)
+                var fileName = Path.GetFileName(qidNormalized);
+                var fallback = todasQuestoes.FirstOrDefault(q =>
+                    string.Equals(Path.GetFileName(q.UniqueId), fileName, StringComparison.OrdinalIgnoreCase));
+                if (fallback != null)
+                {
+                    ordenadas.Add(fallback);
+                    continue;
+                }
+
+                // 3) (opcional) procurar substrings - útil se o DB armazenou caminhos com drivers diferentes ou prefixos
+                var partial = todasQuestoes.FirstOrDefault(q =>
+                    q.UniqueId != null && q.UniqueId.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+                if (partial != null)
+                {
+                    ordenadas.Add(partial);
+                    continue;
+                }
+
+                // se não achar nada, ignora essa entrada (ou você pode logar)
+                // aqui você pode logar: Logger.LogWarning($"Questão {qidNormalized} não encontrada no JSON.");
+            }
+
+            ViewBag.ListaId = id;
+            ViewBag.NomeLista = lista.Nome;
+
+            return View("MostrarQuestoes", ordenadas);
+        }
+
+
+        // GET JSON: /Lista/ObterQuestoesDaLista?id=123
+        [HttpGet]
+        public async Task<IActionResult> ObterQuestoesDaLista(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { success = false, message = "Usuário não autenticado." });
+
+            var lista = await _context.Listas
+                .Include(l => l.ListaQuestoes)
+                .FirstOrDefaultAsync(l => l.Id == id && l.UsuarioId == userId);
+
+            if (lista == null) return NotFound(new { success = false, message = "Lista não encontrada." });
+
+            List<Question> todasQuestoes;
+            try
+            {
+                todasQuestoes = _questionService.GetAllQuestions();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Erro ao carregar questões.", details = ex.Message });
+            }
+
+            var questaoIdsNaLista = lista.ListaQuestoes.Select(lq => lq.QuestaoId).ToList();
+
+            var ordenadas = questaoIdsNaLista
+                .Select(qid => todasQuestoes.FirstOrDefault(q => q.UniqueId == qid))
+                .Where(q => q != null)
+                .Select(q => new
+                {
+                    uniqueId = q.UniqueId,
+                    title = q.title,
+                    year = q.year,
+                    discipline = q.discipline,
+                    language = q.language,
+                    context = q.context,
+                    alternativesIntroduction = q.alternativesIntroduction,
+                    correctAlternative = q.correctAlternative,
+                    alternatives = q.alternatives?.Select(a => new { letter = a.letter, text = a.text }).ToList()
+                })
+                .ToList();
+
+            return Json(new { success = true, questoes = ordenadas });
+        }
+
+        // POST: RemoverQuestaoDaLista { ListaId, QuestaoId }
+        [HttpPost]
+        public async Task<IActionResult> RemoverQuestaoDaLista([FromBody] RemoverQuestaoDto dto)
+        {
+            if (dto == null) return BadRequest(new { success = false, message = "Dados inválidos." });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { success = false, message = "Usuário não autenticado." });
+
+            var lista = await _context.Listas.FirstOrDefaultAsync(l => l.Id == dto.ListaId && l.UsuarioId == userId);
+            if (lista == null) return NotFound(new { success = false, message = "Lista não encontrada." });
+
+            var rel = await _context.ListaQuestoes.FirstOrDefaultAsync(lq => lq.ListaId == dto.ListaId && lq.QuestaoId == dto.QuestaoId);
+            if (rel == null) return NotFound(new { success = false, message = "Questão não encontrada nessa lista." });
+
+            _context.ListaQuestoes.Remove(rel);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Questão removida da lista." });
+        }
     }
+    public class RemoverQuestaoDto { public int ListaId { get; set; } public string QuestaoId { get; set; } = ""; }
+    public class CriarListaDto { public string Nome { get; set; } = ""; }
 
     // Modelos auxiliares para receber dados do front-end
     public class ListaCreateModel { public string Nome { get; set; } }
