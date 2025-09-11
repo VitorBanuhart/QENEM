@@ -3,32 +3,210 @@
     ViewData["Title"] = "Minhas Listas";
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 <div class="container mt-4">
-    <h3>Suas listas</h3>
+    <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link active" aria-current="page" href="@Url.Action("Index", "Lista")">Listas</a></li>
+    </ul>
 
-    @if (!Model.Any())
-    {
-        <p>Crie uma nova lista para começar.</p>
-    }
-    else
-    {
-        <ul class="list-group">
-            @foreach (var lista in Model)
+    <div class="card mt-3"
+         id="card-listas"
+         data-url-criar="@Url.Action("Criar", "Lista")"
+         data-url-excluir="@Url.Action("Excluir", "Lista")">
+
+        <div class="card-header">
+            <h5 class="card-title" style="color: #FFA500;">Histórico de listas</h5>
+        </div>
+        <div class="card-body" id="lista-container">
+            @if (!Model.Any())
             {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <!-- Nome da lista clicável -->
-                    <a href="@Url.Action("Questoes", "Lista", new { id = lista.Id })" class="text-decoration-none fw-bold">
-                        @lista.Nome
-                    </a>
-
-                    <!-- Botão excluir -->
-                    <form method="post" asp-action="Excluir" asp-route-id="@lista.Id" onsubmit="return confirm('Excluir esta lista?');">
-                        <button type="submit" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </form>
-                </li>
+                <p id="mensagem-sem-listas">Crie uma nova lista para começar.</p>
             }
-        </ul>
-    }
+            else
+            {
+                foreach (var lista in Model)
+                {
+                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom" data-lista-id="@lista.Id">
+                        <a href="@Url.Action("Questoes", "Lista", new { id = lista.Id })" class="text-decoration-none fw-bold">
+                            @lista.Nome
+                        </a>
+                        <div>
+                            <input class="form-check-input" type="checkbox" value="" id="check-@lista.Id" title="Selecionar lista">
+
+                            <button class="btn btn-sm btn-outline-danger ms-2 btn-excluir" data-id="@lista.Id" title="Excluir lista">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary" id="btn-criar-lista">Criar Lista</button>
+            <button class="btn btn-secondary">? Ajuda</button>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // --- Seletores e URLs ---
+            const cardListas = document.getElementById('card-listas');
+            const listaContainer = document.getElementById('lista-container');
+            const btnCriarLista = document.getElementById('btn-criar-lista');
+
+            const urlCriar = cardListas.dataset.urlCriar;
+            const urlExcluirBase = cardListas.dataset.urlExcluir;
+
+            // --- Funções de Renderização e Lógica ---
+
+            /**
+             * CORREÇÃO DE SEGURANÇA: Cria e adiciona a nova lista no DOM de forma segura,
+             * usando .textContent para prevenir ataques de XSS.
+             */
+            function renderizarNovaLista(lista) {
+                const msgSemListas = document.getElementById('mensagem-sem-listas');
+                if (msgSemListas) {
+                    msgSemListas.remove();
+                }
+
+                // Cria os elementos do DOM
+                const divWrapper = document.createElement('div');
+                divWrapper.className = 'd-flex justify-content-between align-items-center p-2 border-bottom';
+                divWrapper.dataset.listaId = lista.id;
+
+                const spanNome = document.createElement('span');
+                spanNome.textContent = lista.nome; // .textContent é seguro contra XSS
+
+                const divAcoes = document.createElement('div');
+
+                const inputCheck = document.createElement('input');
+                inputCheck.className = 'form-check-input';
+                inputCheck.type = 'checkbox';
+                inputCheck.title = 'Selecionar lista';
+
+                const btnExcluir = document.createElement('button');
+                btnExcluir.className = 'btn btn-sm btn-outline-danger ms-2 btn-excluir';
+                btnExcluir.dataset.id = lista.id;
+                btnExcluir.title = 'Excluir lista';
+                btnExcluir.innerHTML = '<i class="fas fa-trash-alt"></i>'; // Ícone é seguro
+
+                // Monta a estrutura
+                divAcoes.appendChild(inputCheck);
+                divAcoes.appendChild(btnExcluir);
+                divWrapper.appendChild(spanNome);
+                divWrapper.appendChild(divAcoes);
+
+                listaContainer.appendChild(divWrapper);
+            }
+
+            // --- Funções de API (Fetch) ---
+
+            async function criarNovaLista(nome) {
+                Swal.fire({ title: 'Criando lista...', didOpen: () => Swal.showLoading() });
+
+                try {
+                    const response = await fetch(urlCriar, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome: nome })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        renderizarNovaLista(result.lista);
+                        Swal.fire('Sucesso!', 'Sua lista foi criada.', 'success');
+                    } else {
+                        const mensagemErro = result.message === "msg_maximo_lista"
+                            ? "Você atingiu o limite máximo de 10 listas."
+                            : result.message;
+                        Swal.fire('Erro!', mensagemErro, 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao criar lista:', error);
+                    Swal.fire('Oops!', 'Algo deu errado. Tente novamente.', 'error');
+                }
+            }
+
+            async function excluirLista(id) {
+                Swal.fire({ title: 'Excluindo...', didOpen: () => Swal.showLoading() });
+
+                try {
+                    const response = await fetch(`${urlExcluirBase}/${id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        document.querySelector(`[data-lista-id='${id}']`).remove();
+                        Swal.fire('Excluída!', 'A lista foi removida.', 'success');
+
+                        if (listaContainer.children.length === 0) {
+                            listaContainer.innerHTML = '<p id="mensagem-sem-listas">Crie uma nova lista para começar.</p>';
+                        }
+                    } else {
+                        Swal.fire('Erro!', result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir lista:', error);
+                    Swal.fire('Oops!', 'Algo deu errado ao tentar excluir.', 'error');
+                }
+            }
+
+            // --- Event Listeners ---
+
+            btnCriarLista.addEventListener('click', async () => {
+                const { value: nomeLista } = await Swal.fire({
+                    title: 'Insira o nome da lista',
+                    input: 'text',
+                    inputLabel: 'Máximo 30 caracteres',
+                    inputPlaceholder: 'INSIRA O NOME DA LISTA...',
+                    showCancelButton: true,
+                    confirmButtonText: 'OK',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        if (!value || value.trim() === '') {
+                            return 'O nome não pode ser vazio!';
+                        }
+                        if (value.length > 30) {
+                            return 'O nome não pode ter mais de 30 caracteres!';
+                        }
+                    }
+                });
+
+                if (nomeLista) {
+                    criarNovaLista(nomeLista.trim());
+                }
+            });
+
+            listaContainer.addEventListener('click', function(e) {
+                // Procura pelo botão de excluir, mesmo que o clique seja no ícone dentro dele
+                const targetButton = e.target.closest('.btn-excluir');
+                if (targetButton) {
+                    const listaId = targetButton.dataset.id;
+                    Swal.fire({
+                        title: 'Tem certeza?',
+                        text: "Você não poderá reverter isso!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sim, excluir!',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            excluirLista(listaId);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
