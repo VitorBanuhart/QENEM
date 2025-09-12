@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using Markdig
 @model List<qenem.Models.Question>
 @{
     ViewData["Title"] = "Questões da Lista";
@@ -26,8 +27,8 @@
                     {
                         <p><strong>Língua:</strong> @questao.language</p>
                     }
-                    <p>@questao.context</p>
-                    <p>@questao.alternativesIntroduction</p>
+                    <p>@Html.Raw(Markdown.ToHtml(questao.context ?? ""))</p>
+                    <p>@Html.Raw(Markdown.ToHtml(questao.alternativesIntroduction ?? ""))</p>
 
                     <div class="list-group">
                         @foreach (var alt in questao.alternatives)
@@ -48,6 +49,9 @@
                 </div>
             }
         </div>
+        <a class="btn btn-danger" asp-controller="Lista" asp-action="BaixarPDF" asp-route-listaId="@ViewBag.ListaId">
+            Baixar em PDF
+        </a>
     }
 </div>
 
