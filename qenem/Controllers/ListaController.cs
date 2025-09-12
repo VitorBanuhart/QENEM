@@ -289,6 +289,23 @@ namespace qenem.Controllers
 
             return Json(new { success = true, message = "Questão removida da lista." });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RenomearLista([FromBody] RenomearListaDto dto)
+        {
+            if (dto == null || dto.ListaId <= 0 || string.IsNullOrWhiteSpace(dto.NovoNome) || dto.NovoNome.Length > 30)
+            {
+                return BadRequest(new { success = false, message = "Dados inválidos ou nome excede 30 caracteres." });
+            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized(new { success = false, message = "Usuário não autenticado." });
+            var lista = await _context.Listas.FirstOrDefaultAsync(l => l.Id == dto.ListaId && l.UsuarioId == userId);
+            if (lista == null) return NotFound(new { success = false, message = "Lista não encontrada." });
+            lista.Nome = dto.NovoNome;
+            _context.Listas.Update(lista);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Lista renomeada com sucesso.", novoNome = dto.NovoNome });
+        }
     }
     public class RemoverQuestaoDto { public int ListaId { get; set; } public string QuestaoId { get; set; } = ""; }
     public class CriarListaDto { public string Nome { get; set; } = ""; }
@@ -296,4 +313,5 @@ namespace qenem.Controllers
     // Modelos auxiliares para receber dados do front-end
     public class ListaCreateModel { public string Nome { get; set; } }
     public class AdicionarQuestaoModel { public int ListaId { get; set; } public string QuestaoId { get; set; } }
+    public class RenomearListaDto { public int ListaId { get; set; } public string NovoNome { get; set; } }
 }
