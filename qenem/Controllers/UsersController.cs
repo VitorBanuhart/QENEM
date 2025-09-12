@@ -106,6 +106,6 @@ public class UsersController : Controller
 
         model.Mensagem = "Suas áreas de interesse foram atualizadas com sucesso!";
 
-        return View("Index", model);
+        return RedirectToAction("Index", "ListarQuestoes");
     }
 }
