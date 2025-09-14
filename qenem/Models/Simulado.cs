@@ -9,6 +9,7 @@
         public List<int> AnosSelecionados { get; set; } = new();
         public int NumeroQuestoes { get; set; }
         public List<Question> Questoes { get; set; } = new();
+        public List<RespostaUsuario> Respostas { get; set; } = new();
         public TimeSpan? TempoGasto { get; set; }
         public Dictionary<string, int> AcertosPorArea { get; set; } = new();
     }
