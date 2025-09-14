@@ -1,0 +1,104 @@
+﻿@{
+    ViewData["Title"] = "Realizando Simulado";
+    Layout = null; // Layout em tela cheia, sem o menu padrão
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress-indicator {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #0d6efd;
+        }
+
+            .progress-dot.active {
+                background-color: #0d6efd;
+            }
+
+            .progress-dot.answered {
+                background-color: #d1e7dd;
+                border-color: #0f5132;
+            }
+
+        .option-label {
+            display: block;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+            .option-label:hover {
+                background-color: #f0f0f0;
+            }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+            input[type="radio"]:checked + .option-label {
+                border-color: #0d6efd;
+                background-color: #cfe2ff;
+            }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="badge bg-primary fs-5">12:58</span>
+                <div>
+                    <h5>Nome do Simulado</h5>
+                    <small class="text-muted">Área - NOME DA ÁREA (Q. 4/15)</small>
+                </div>
+            </div>
+
+            <div class="progress-indicator my-4 justify-content-center">
+                <span class="progress-dot answered"></span>
+                <span class="progress-dot answered"></span>
+                <span class="progress-dot answered"></span>
+                <span class="progress-dot active"></span>
+                <span class="progress-dot"></span>
+                <span class="progress-dot"></span>
+                <span class="progress-dot"></span>
+                <span class="progress-dot"></span>
+            </div>
+
+            <h4 class="my-4">QUESTÃO NÚMERO 4</h4>
+
+            <p>Enunciado da questão viria aqui...</p>
+
+            <div class="options mt-4">
+                <input type="radio" name="resposta" id="optA"><label for="optA" class="option-label">A) Alternativa A</label>
+                <input type="radio" name="resposta" id="optB"><label for="optB" class="option-label">B) Alternativa B</label>
+                <input type="radio" name="resposta" id="optC"><label for="optC" class="option-label">C) Alternativa C</label>
+                <input type="radio" name="resposta" id="optD"><label for="optD" class="option-label">D) Alternativa D</label>
+                <input type="radio" name="resposta" id="optE"><label for="optE" class="option-label">E) Alternativa E</label>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-outline-secondary">? Ajuda</button>
+                <div>
+                    <button class="btn btn-info">Ver Resposta</button>
+                    <a asp-action="Resultado" class="btn btn-primary">Próxima Questão</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

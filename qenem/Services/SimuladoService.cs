@@ -51,35 +51,20 @@ namespace qenem.Services
             var simulado = _simulados.FirstOrDefault(s => s.Id == simuladoId);
             if (simulado != null)
             {
-                var respostaExistente = simulado.Respostas.FirstOrDefault(r => r.QuestaoId == questaoId);
-                if (respostaExistente != null)
-                {
-                    // Atualiza a resposta já existente
-                    respostaExistente.Resposta = resposta;
-                }
-                else
-                {
-                    // Registra uma nova resposta
-                    simulado.Respostas.Add(new RespostaUsuario
-                    {
-                        QuestaoId = questaoId,
-                        Resposta = resposta
-                    });
-                }
+                //var questao = simulado.Questoes.FirstOrDefault(q => q.UniqueId == questaoId);
+                //if (questao != null)
+                //{
+                //    questao.RespostaUsuario = resposta;
+                //}
             }
-
             return Task.CompletedTask;
         }
-
 
         public Task FinalizarSimulado(int simuladoId)
         {
             var simulado = _simulados.FirstOrDefault(s => s.Id == simuladoId);
             if (simulado != null)
             {
-                simulado.TempoGasto = DateTime.UtcNow - simulado.DataCriacao;
-
-                // Aqui futuramente calculamos os acertos por área
             }
             return Task.CompletedTask;
         }

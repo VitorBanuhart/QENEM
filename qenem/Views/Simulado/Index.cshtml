@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Histórico de Simulados";
+}
+
+<h4 class="mb-4 text-warning">Histórico de Simulados</h4>
+
+<div class="list-group">
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <span>Simulado de Matemática 2024</span>
+        <div>
+            <button class="btn btn-sm btn-outline-primary">Editar</button>
+            <button class="btn btn-sm btn-outline-danger">Remover</button>
+        </div>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <span>Revisão de Linguagens</span>
+        <div>
+            <button class="btn btn-sm btn-outline-primary">Editar</button>
+            <button class="btn btn-sm btn-outline-danger">Remover</button>
+        </div>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+        <span>Simulado Geral - Todas as Áreas</span>
+        <div>
+            <button class="btn btn-sm btn-outline-primary">Editar</button>
+            <button class="btn btn-sm btn-outline-danger">Remover</button>
+        </div>
+    </div>
+</div>
+
+@{
+    bool limiteAtingido = false; // Esta variável viria da Controller
+    if (limiteAtingido)
+    {
+        <div class="alert alert-danger mt-4" role="alert">
+            msg_maximo_simulado: Você atingiu o número máximo de 10 simulados.
+        </div>
+    }
+}
+
+
+<div class="text-end mt-4">
+    <a asp-action="CriarSimulado" class="btn btn-success">Criar Simulado</a>
+</div>
