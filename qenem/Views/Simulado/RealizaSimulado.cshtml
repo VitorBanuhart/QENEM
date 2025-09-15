@@ -54,50 +54,66 @@
                 background-color: #cfe2ff;
             }
     </style>
-</head>
-<body class="bg-light">
+</head><body class="bg-light">
     <div class="container my-5">
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge bg-primary fs-5">12:58</span>
+                <span id="timer" class="badge bg-primary fs-5">00:00:00</span>
                 <div>
-                    <h5>Nome do Simulado</h5>
-                    <small class="text-muted">Área - NOME DA ÁREA (Q. 4/15)</small>
+                    <h5>@Model.SimuladoNome</h5>
+                    <small class="text-muted">@Model.QuestaoAtual.discipline - (Q. @(Model.QuestaoAtualIndex + 1)/@Model.TotalQuestoes)</small>
                 </div>
             </div>
 
             <div class="progress-indicator my-4 justify-content-center">
-                <span class="progress-dot answered"></span>
-                <span class="progress-dot answered"></span>
-                <span class="progress-dot answered"></span>
-                <span class="progress-dot active"></span>
-                <span class="progress-dot"></span>
-                <span class="progress-dot"></span>
-                <span class="progress-dot"></span>
-                <span class="progress-dot"></span>
+                @for (int i = 0; i < Model.TotalQuestoes; i++)
+                {
+                    var dotClass = "progress-dot";
+                    if (i == Model.QuestaoAtualIndex)
+                    {
+                        dotClass += " active";
+                    }
+                    // Esta lógica precisa ser ajustada para verificar se a questão no índice 'i' foi respondida
+                    // else if (Model.RespostasSalvas.ContainsKey(questoesDoSimulado[i].id)) 
+                    // {
+                    //      dotClass += " answered";
+                    // }
+                    <span class="@dotClass"></span>
+                }
             </div>
 
-            <h4 class="my-4">QUESTÃO NÚMERO 4</h4>
+            <h4 class="my-4">QUESTÃO @(Model.QuestaoAtualIndex + 1)</h4>
 
-            <p>Enunciado da questão viria aqui...</p>
-
-            <div class="options mt-4">
-                <input type="radio" name="resposta" id="optA"><label for="optA" class="option-label">A) Alternativa A</label>
-                <input type="radio" name="resposta" id="optB"><label for="optB" class="option-label">B) Alternativa B</label>
-                <input type="radio" name="resposta" id="optC"><label for="optC" class="option-label">C) Alternativa C</label>
-                <input type="radio" name="resposta" id="optD"><label for="optD" class="option-label">D) Alternativa D</label>
-                <input type="radio" name="resposta" id="optE"><label for="optE" class="option-label">E) Alternativa E</label>
-            </div>
-
-            <hr>
-
-            <div class="d-flex justify-content-between mt-3">
-                <button class="btn btn-outline-secondary">? Ajuda</button>
-                <div>
-                    <button class="btn btn-info">Ver Resposta</button>
-                    <a asp-action="Resultado" class="btn btn-primary">Próxima Questão</a>
+            <p>@Html.Raw(Model.QuestaoAtual.enunciado)</p> 
+            
+            <form asp-action="RegistrarResposta" method="post">
+                <input type="hidden" name="simuladoId" value="@Model.SimuladoId" />
+                <input type="hidden" name="questaoId" value="@Model.QuestaoAtual.id" />
+                
+                <div class="options mt-4">
+                    @foreach (var alt in Model.QuestaoAtual.alternatives)
+                    {
+                        var isChecked = Model.RespostaUsuario == alt.Key;
+                        <input type="radio" name="resposta" id="opt@(alt.Key)" value="@alt.Key" checked="@isChecked">
+                        <label for="opt@(alt.Key)" class="option-label">@alt.Key) @alt.Value</label>
+                    }
                 </div>
-            </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mt-3">
+                     @if (Model.QuestaoAtualIndex > 0)
+                    {
+                        <a asp-action="RealizaSimulado" asp-route-id="@Model.SimuladoId" asp-route-questaoIndex="@(Model.QuestaoAtualIndex - 1)" class="btn btn-secondary">Questão Anterior</a>
+                    }
+                    else
+                    {
+                         <span></span>
+                    }
+                    
+                    <button type="submit" class="btn btn-primary">Próxima Questão</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>

@@ -22,6 +22,7 @@ builder.Services.AddSingleton<QuestionService>(sp =>
     var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
     return new QuestionService(repo, dataPath);
 });
+builder.Services.AddScoped<SimuladoService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();

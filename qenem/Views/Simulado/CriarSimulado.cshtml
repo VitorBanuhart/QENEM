@@ -1,105 +1,149 @@
-﻿@{
+﻿@model qenem.Models.ListaSimulado
+@{
     ViewData["Title"] = "Criação de Simulado";
 }
 
 <h4 class="mb-4">Tela Criação Simulado</h4>
 
-<form id="formCriarSimulado">
-    <div class="mb-4">
-        <h5>Áreas de interesse</h5>
-        <div class="form-check">
-            <input class="form-check-input area-interesse" type="checkbox" value="matematica" id="checkMatematica">
-            <label class="form-check-label" for="checkMatematica">Matemática</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input area-interesse" type="checkbox" value="humanas" id="checkHumanas">
-            <label class="form-check-label" for="checkHumanas">Ciências Humanas</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input area-interesse" type="checkbox" value="natureza" id="checkNatureza">
-            <label class="form-check-label" for="checkNatureza">Ciências Natureza</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input area-interesse" type="checkbox" value="linguagens" id="checkLinguagens">
-            <label class="form-check-label" for="checkLinguagens">Linguagens</label>
-        </div>
-    </div>
+<form id="formCriarSimulado" method="post" asp-action="CriarSimulado" asp-controller="Simulado">
+    <div class="card mt-3" id="card-criar-simulado">
 
-    <div class="mb-4">
-        <h5>Anos</h5>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="tipoAnos" id="anosTodos" value="todos" checked>
-            <label class="form-check-label" for="anosTodos">Todos</label>
+        <div class="card-body">
+            <div class="mb-4">
+                <h5>Áreas de interesse</h5>
+                @foreach (var area in new[] { "Matemática", "Ciências Humanas", "Ciências Natureza", "Linguagens", "Espanhol", "Inglês" })
+                {
+                    var idCheck = "check" + area.Replace(" ", "");
+                    <div class="form-check">
+                        <input class="form-check-input area-interesse" type="checkbox" value="@area" id="@idCheck" name="AreasSelecionadas" />
+                        <label class="form-check-label" for="@idCheck">@area</label>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-4">
+                <h5>Anos</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="TipoAnos" id="anosTodos" value="todos" checked />
+                    <label class="form-check-label" for="anosTodos">Todos</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="TipoAnos" id="anosEspecificos" value="especificos" data-bs-toggle="modal" data-bs-target="#modalAnos" />
+                    <label class="form-check-label" for="anosEspecificos">Específicos...</label>
+                </div>
+                <input type="hidden" id="anosSelecionados" name="AnosSelecionados" />
+            </div>
+
+            <div class="mb-3">
+                <label for="numeroQuestoes" class="form-label">Insira o número de questões</label>
+                <input type="number" class="form-control" id="numeroQuestoes" name="NumeroQuestoes" placeholder="Ex: 10, 50, 180" max="180" />
+            </div>
+
+            <div class="mb-4">
+                <label for="nomeSimulado" class="form-label">Insira o nome do simulado</label>
+                <input type="text" class="form-control" id="nomeSimulado" name="NomeSimulado" placeholder="Máximo de 30 caracteres" maxlength="30" />
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary">? Ajuda</button>
+                <button id="btnConfirmar" type="submit" class="btn btn-primary" disabled>Criar Simulado</button>
+            </div>
         </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="tipoAnos" id="anosEspecificos" value="especificos" data-bs-toggle="modal" data-bs-target="#modalAnos">
-            <label class="form-check-label" for="anosEspecificos">Específicos...</label>
-        </div>
-        <input type="hidden" id="anosSelecionados" name="anosSelecionados" />
-    </div>
-
-    <div class="mb-3">
-        <label for="numeroQuestoes" class="form-label">Insira o número de questões</label>
-        <input type="number" class="form-control" id="numeroQuestoes" placeholder="Ex: 10, 50, 180" max="180">
-    </div>
-
-    <div class="mb-4">
-        <label for="nomeSimulado" class="form-label">Insira o nome do simulado</label>
-        <input type="text" class="form-control" id="nomeSimulado" placeholder="Máximo de 30 caracteres" maxlength="30">
-    </div>
-
-    <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary">? Ajuda</button>
-        <button id="btnConfirmar" type="submit" class="btn btn-primary" disabled>Criar Simulado</button>
     </div>
 </form>
 
 <partial name="ModalAnos" />
 
-
 @section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
             const form = document.getElementById('formCriarSimulado');
             const btnConfirmar = document.getElementById('btnConfirmar');
             const nomeSimuladoInput = document.getElementById('nomeSimulado');
             const numeroQuestoesInput = document.getElementById('numeroQuestoes');
             const areasCheckboxes = document.querySelectorAll('.area-interesse');
+            const radioAnosTodos = document.getElementById('anosTodos');
+            const radioAnosEspecificos = document.getElementById('anosEspecificos');
+            const modalAnos = new bootstrap.Modal(document.getElementById('modalAnos'));
+            const anosSelecionadosInput = document.getElementById('anosSelecionados');
 
             function validarFormulario() {
                 const nomeValido = nomeSimuladoInput.value.trim().length > 0;
                 const questoesValidas = parseInt(numeroQuestoesInput.value, 10) > 0;
                 const areaSelecionada = Array.from(areasCheckboxes).some(cb => cb.checked);
-
-                // Habilita o botão apenas se todos os critérios forem atendidos
                 btnConfirmar.disabled = !(nomeValido && questoesValidas && areaSelecionada);
             }
 
-            // Adiciona listeners para validar em tempo real
             nomeSimuladoInput.addEventListener('input', validarFormulario);
             numeroQuestoesInput.addEventListener('input', validarFormulario);
             areasCheckboxes.forEach(cb => cb.addEventListener('change', validarFormulario));
 
-            // Lógica para o modal de anos
-            const radioAnosEspecificos = document.getElementById('anosEspecificos');
-            const radioAnosTodos = document.getElementById('anosTodos');
-            const modalAnos = new bootstrap.Modal(document.getElementById('modalAnos'));
-
-            // Previne que o rádio mude se o modal for cancelado
+            // Modal anos
             radioAnosEspecificos.addEventListener('click', function(e) {
-                 if (!document.getElementById('anosSelecionados').value) {
-                    radioAnosTodos.checked = true; // Mantém "Todos" selecionado
-                 }
+                if (!anosSelecionadosInput.value) {
+                    radioAnosTodos.checked = true; // Mantém "Todos" se nada selecionado
+                }
             });
 
-             document.getElementById('btnConfirmaAnos').addEventListener('click', function() {
+            document.getElementById('btnConfirmaAnos').addEventListener('click', function() {
                 const anosInput = document.getElementById('inputAnos');
-                document.getElementById('anosSelecionados').value = anosInput.value;
-                if(anosInput.value) {
+                anosSelecionadosInput.value = anosInput.value;
+                if (anosInput.value) {
                     radioAnosEspecificos.checked = true;
                 }
                 modalAnos.hide();
-             });
+            });
+
+
+            btnConfirmar.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            debugger;
+
+            const simuladoData = {
+                NomeSimulado: nomeSimuladoInput.value.trim(),
+                NumeroQuestoes: parseInt(numeroQuestoesInput.value, 10),
+                   // separando áreas (Matemática, Humanas, Natureza...)
+                AreasSelecionadas: Array.from(areasCheckboxes)
+                    .filter(cb => cb.checked && !["Espanhol", "Inglês"].includes(cb.value))
+                    .map(cb => cb.value),
+
+                // separando linguagens (Espanhol, Inglês)
+                LinguagensSelecionadas: Array.from(areasCheckboxes)
+                    .filter(cb => cb.checked && ["Espanhol", "Inglês"].includes(cb.value))
+                    .map(cb => cb.value),
+                AnosSelecionados: anosSelecionadosInput.value
+                    ? anosSelecionadosInput.value.split(',').map(a => parseInt(a.trim(), 10))
+                    : []
+            };
+
+            try {
+                const response = await fetch('@Url.Action("CriarSimulado", "Simulado")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(simuladoData)
+                });
+
+
+                        const result = await response.json();
+                        if (result && result.success && result.simulado && result.simulado.id) {
+                            window.location.href = `/Simulado/RealizaSimulado?id=${result.simulado.id}`;
+                        } else {
+                            Swal.fire('Erro!', result?.message || 'Não foi possível criar o simulado.', 'error');
+                        }
+
+            } catch (err) {
+                console.error('Erro ao criar simulado:', err);
+                Swal.fire('Erro!', 'Não foi possível criar o simulado.', 'error');
+            }
+
+        });
+
+
         });
     </script>
 }
