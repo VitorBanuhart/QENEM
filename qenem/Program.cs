@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using qenem;
 using qenem.Data;
+using qenem.Interfaces;
 using qenem.Models; 
 using qenem.Services;
 using System;
@@ -35,6 +37,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("MailerSend"));
+builder.Services.AddTransient<IEmailService, MailerSendEmailService>();
 
 var app = builder.Build();
 
