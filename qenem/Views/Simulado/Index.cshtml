@@ -1,44 +1,93 @@
-﻿@{
+﻿@model List<qenem.Models.ListaSimulado>
+@{
     ViewData["Title"] = "Histórico de Simulados";
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
+
 <h4 class="mb-4 text-warning">Histórico de Simulados</h4>
 
-<div class="list-group">
-    <div class="list-group-item d-flex justify-content-between align-items-center">
-        <span>Simulado de Matemática 2024</span>
-        <div>
-            <button class="btn btn-sm btn-outline-primary">Editar</button>
-            <button class="btn btn-sm btn-outline-danger">Remover</button>
-        </div>
+<div class="card mt-3"
+     id="card-simulados"
+     data-url-excluir="@Url.Action("Excluir", "Simulado")">
+
+    <div class="card-body" id="simulados-container">
+        @if (!Model.Any())
+        {
+            <p id="mensagem-sem-simulados">Crie um novo simulado para começar.</p>
+        }
+        else
+        {
+            foreach (var simulado in Model)
+            {
+                if (simulado.Simulado != null)
+                {
+                    <a href="@Url.Action("Questoes", "Simulado", new { id = simulado.Id })" class="text-decoration-none fw-bold">
+                        @simulado.Simulado.Nome
+                    </a>
+                }
+            }
+        }
     </div>
-    <div class="list-group-item d-flex justify-content-between align-items-center">
-        <span>Revisão de Linguagens</span>
-        <div>
-            <button class="btn btn-sm btn-outline-primary">Editar</button>
-            <button class="btn btn-sm btn-outline-danger">Remover</button>
-        </div>
-    </div>
-    <div class="list-group-item d-flex justify-content-between align-items-center">
-        <span>Simulado Geral - Todas as Áreas</span>
-        <div>
-            <button class="btn btn-sm btn-outline-primary">Editar</button>
-            <button class="btn btn-sm btn-outline-danger">Remover</button>
-        </div>
+
+    <div class="card-footer text-end">
+        <a asp-action="CriarSimulado" class="btn btn-success">Criar Simulado</a>
     </div>
 </div>
 
-@{
-    bool limiteAtingido = false; // Esta variável viria da Controller
-    if (limiteAtingido)
-    {
-        <div class="alert alert-danger mt-4" role="alert">
-            msg_maximo_simulado: Você atingiu o número máximo de 10 simulados.
-        </div>
-    }
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const simuladosContainer = document.getElementById('simulados-container');
+            const urlExcluirBase = document.getElementById('card-simulados').dataset.urlExcluir;
+
+            async function excluirSimulado(id) {
+                Swal.fire({ title: 'Excluindo...', didOpen: () => Swal.showLoading() });
+
+                try {
+                    const response = await fetch(`${urlExcluirBase}/${id}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        document.querySelector(`[data-simulado-id='${id}']`).remove();
+                        Swal.fire('Removido!', 'Simulado excluído.', 'success');
+
+                        if (!simuladosContainer.children.length) {
+                            simuladosContainer.innerHTML = '<p id="mensagem-sem-simulados">Crie um novo simulado para começar.</p>';
+                        }
+                    } else {
+                        Swal.fire('Erro!', result.message, 'error');
+                    }
+                } catch (err) {
+                    console.error('Erro ao excluir simulado:', err);
+                    Swal.fire('Erro!', 'Não foi possível excluir.', 'error');
+                }
+            }
+
+            simuladosContainer.addEventListener('click', function (e) {
+                const btnExcluir = e.target.closest('.btn-excluir');
+                if (btnExcluir) {
+                    const id = btnExcluir.dataset.id;
+                    Swal.fire({
+                        title: 'Tem certeza?',
+                        text: 'Esta ação não pode ser revertida!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sim, excluir!',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) excluirSimulado(id);
+                    });
+                }
+            });
+        });
+    </script>
 }
-
-
-<div class="text-end mt-4">
-    <a asp-action="CriarSimulado" class="btn btn-success">Criar Simulado</a>
-</div>

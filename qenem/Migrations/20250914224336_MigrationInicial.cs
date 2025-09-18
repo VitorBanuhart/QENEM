@@ -12,6 +12,19 @@ namespace qenem.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Alternative",
+                columns: table => new
+                {
+                    letter = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    file = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    isCorrect = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AreasInteresse",
                 columns: table => new
                 {
@@ -190,6 +203,31 @@ namespace qenem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Simulados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DataCriacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AreasInteresse = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AnosSelecionados = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NumeroQuestoes = table.Column<int>(type: "int", nullable: false),
+                    TempoGasto = table.Column<TimeSpan>(type: "time", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Simulados", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Simulados_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UsuarioAreas",
                 columns: table => new
                 {
@@ -233,6 +271,78 @@ namespace qenem.Migrations
                         principalTable: "Listas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListaSimulados",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SimuladoId = table.Column<int>(type: "int", nullable: false),
+                    QuestaoId = table.Column<int>(type: "int", nullable: false),
+                    RespostaUsuario = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EstaCorreta = table.Column<bool>(type: "bit", nullable: true),
+                    DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    AreaQuestao = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListaSimulados", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ListaSimulados_Simulados_SimuladoId",
+                        column: x => x.SimuladoId,
+                        principalTable: "Simulados",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Question",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    index = table.Column<int>(type: "int", nullable: false),
+                    year = table.Column<int>(type: "int", nullable: false),
+                    language = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    discipline = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    context = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    files = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    correctAlternative = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    alternativesIntroduction = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UniqueId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SimuladoId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Question", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_Question_Simulados_SimuladoId",
+                        column: x => x.SimuladoId,
+                        principalTable: "Simulados",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RespostasUsuario",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuestaoId = table.Column<int>(type: "int", nullable: false),
+                    Resposta = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SimuladoId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RespostasUsuario", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RespostasUsuario_Simulados_SimuladoId",
+                        column: x => x.SimuladoId,
+                        principalTable: "Simulados",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -285,6 +395,26 @@ namespace qenem.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ListaSimulados_SimuladoId",
+                table: "ListaSimulados",
+                column: "SimuladoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Question_SimuladoId",
+                table: "Question",
+                column: "SimuladoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RespostasUsuario_SimuladoId",
+                table: "RespostasUsuario",
+                column: "SimuladoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Simulados_UsuarioId",
+                table: "Simulados",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UsuarioAreas_Id_AreaInteresse",
                 table: "UsuarioAreas",
                 column: "Id_AreaInteresse");
@@ -298,6 +428,9 @@ namespace qenem.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Alternative");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -317,6 +450,15 @@ namespace qenem.Migrations
                 name: "ListaQuestoes");
 
             migrationBuilder.DropTable(
+                name: "ListaSimulados");
+
+            migrationBuilder.DropTable(
+                name: "Question");
+
+            migrationBuilder.DropTable(
+                name: "RespostasUsuario");
+
+            migrationBuilder.DropTable(
                 name: "UsuarioAreas");
 
             migrationBuilder.DropTable(
@@ -324,6 +466,9 @@ namespace qenem.Migrations
 
             migrationBuilder.DropTable(
                 name: "Listas");
+
+            migrationBuilder.DropTable(
+                name: "Simulados");
 
             migrationBuilder.DropTable(
                 name: "AreasInteresse");
