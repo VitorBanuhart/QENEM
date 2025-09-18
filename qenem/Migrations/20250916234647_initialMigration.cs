@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class CriacaoTabelaAreasInteresse : Migration
+    public partial class initialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -170,6 +170,26 @@ namespace qenem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Listas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nome = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    UsuarioId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Listas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Listas_AspNetUsers_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UsuarioAreas",
                 columns: table => new
                 {
@@ -191,6 +211,26 @@ namespace qenem.Migrations
                         name: "FK_UsuarioAreas_AspNetUsers_Id_Usuario",
                         column: x => x.Id_Usuario,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListaQuestoes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ListaId = table.Column<int>(type: "int", nullable: false),
+                    QuestaoId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListaQuestoes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ListaQuestoes_Listas_ListaId",
+                        column: x => x.ListaId,
+                        principalTable: "Listas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -235,6 +275,16 @@ namespace qenem.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ListaQuestoes_ListaId",
+                table: "ListaQuestoes",
+                column: "ListaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Listas_UsuarioId",
+                table: "Listas",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UsuarioAreas_Id_AreaInteresse",
                 table: "UsuarioAreas",
                 column: "Id_AreaInteresse");
@@ -264,10 +314,16 @@ namespace qenem.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ListaQuestoes");
+
+            migrationBuilder.DropTable(
                 name: "UsuarioAreas");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Listas");
 
             migrationBuilder.DropTable(
                 name: "AreasInteresse");
