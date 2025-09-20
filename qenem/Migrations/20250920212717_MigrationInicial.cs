@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class simulado1 : Migration
+    public partial class MigrationInicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -304,6 +304,7 @@ namespace qenem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SimuladoId = table.Column<int>(type: "int", nullable: false),
                     QuestaoId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UsuarioId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Resposta = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EstaCorreta = table.Column<bool>(type: "bit", nullable: true),
                     DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true)
