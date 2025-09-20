@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationInicial : Migration
+    public partial class featInicioimplementacaosimulado : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -214,7 +214,8 @@ namespace qenem.Migrations
                     AreasInteresse = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AnosSelecionados = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     NumeroQuestoes = table.Column<int>(type: "int", nullable: false),
-                    TempoGasto = table.Column<TimeSpan>(type: "time", nullable: true)
+                    TempoGasto = table.Column<TimeSpan>(type: "time", nullable: true),
+                    Finalizado = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -281,9 +282,7 @@ namespace qenem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SimuladoId = table.Column<int>(type: "int", nullable: false),
                     QuestaoId = table.Column<int>(type: "int", nullable: false),
-                    RespostaUsuario = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    EstaCorreta = table.Column<bool>(type: "bit", nullable: true),
-                    DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Ordem = table.Column<int>(type: "int", nullable: false),
                     AreaQuestao = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
                 },
                 constraints: table =>
@@ -298,34 +297,6 @@ namespace qenem.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Question",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    index = table.Column<int>(type: "int", nullable: false),
-                    year = table.Column<int>(type: "int", nullable: false),
-                    language = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    discipline = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    context = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    files = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    correctAlternative = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    alternativesIntroduction = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UniqueId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SimuladoId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Question", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_Question_Simulados_SimuladoId",
-                        column: x => x.SimuladoId,
-                        principalTable: "Simulados",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "RespostasUsuario",
                 columns: table => new
                 {
@@ -333,6 +304,8 @@ namespace qenem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QuestaoId = table.Column<int>(type: "int", nullable: false),
                     Resposta = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EstaCorreta = table.Column<bool>(type: "bit", nullable: true),
+                    DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SimuladoId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -400,11 +373,6 @@ namespace qenem.Migrations
                 column: "SimuladoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Question_SimuladoId",
-                table: "Question",
-                column: "SimuladoId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_RespostasUsuario_SimuladoId",
                 table: "RespostasUsuario",
                 column: "SimuladoId");
@@ -451,9 +419,6 @@ namespace qenem.Migrations
 
             migrationBuilder.DropTable(
                 name: "ListaSimulados");
-
-            migrationBuilder.DropTable(
-                name: "Question");
 
             migrationBuilder.DropTable(
                 name: "RespostasUsuario");

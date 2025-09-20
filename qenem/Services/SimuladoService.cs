@@ -23,6 +23,35 @@ namespace qenem.Services
             _logger = logger;
         }
 
+        // TO DO:
+        // verificar se simulado está em andamento ou finalizado
+        // se em andamento, carregar questões e respostas
+        // se finalizado, carregar estatísticas (Resultado)
+
+        //public async Task<Simulado?> ObterSimulado(int id) //ao acessar um simulado no historico
+        //{
+        //}
+        public async Task<List<Simulado>> ListarSimulados(string userId)
+        {
+            return await _context.Simulados
+                .Where(s => s.UsuarioId == userId) // Para carregar questões
+                .OrderByDescending(s => s.DataCriacao)
+                .ToListAsync();
+        }
+        public async Task<List<Question>> ObterQuestoesSimulado(int simuladoId)
+        {
+            var questoesIds = _context.ListaSimulados
+                .Where(ls => ls.SimuladoId == simuladoId)
+                .Select(ls => ls.QuestaoId)
+                .ToList();
+
+            var questoes = _questionService.GetAllQuestions()
+                .Where(q => questoesIds.Contains(q.id))
+                .ToList();
+
+            return questoes;
+        }
+
         public async Task<Simulado?> CriarSimulado(CriarSimuladoRequest request, string userId)
         {
             try
@@ -36,11 +65,14 @@ namespace qenem.Services
                 if (request.NumeroQuestoes > 180)
                     throw new InvalidOperationException("O simulado não pode ter mais que 180 questões.");
 
-                // Obter questões do serviço
+                // TO DO:
+                // Implementar obter quantidade correta de questoes baseado nos filtros do request
+                // Exemplo: se o usuário escolheu 3 áreas e 2 linguagens, distribuir as questões proporcionalmente
+                // Assim como quantidade e distribuição por ano
                 var questoesSelecionadas = await Task.Run(() =>
                     _questionService.GetRandomQuestions(request.AreasSelecionadas, request.LinguagensSelecionadas, userId.ToString())
                 );
-
+                    
                 if (!questoesSelecionadas.Any())
                     throw new InvalidOperationException("Nenhuma questão encontrada para os critérios selecionados.");
 
@@ -59,22 +91,12 @@ namespace qenem.Services
                 _context.Simulados.Add(simulado);
                 await _context.SaveChangesAsync(); // Para obter o Id do simulado
 
-                // ✅ NOVO: Criar ListaSimulado para cada questão selecionada
                 var questoesParaSimulado = questoesSelecionadas.Take(request.NumeroQuestoes).ToList();
 
-                foreach (var questao in questoesParaSimulado)
-                {
-                    var listaSimulado = new ListaSimulado
-                    {
-                        SimuladoId = simulado.Id,
-                        QuestaoId = questao.id,
-                        AreaQuestao = questao.discipline // Para facilitar cálculos de AcertosPorArea
-                    };
+                //vincula questões ao simulado
+                //precisa que o as questoes venham corretamente do GetRandomQuestions
+                await VincularQuestoesSimulado(simulado.Id, questoesParaSimulado); 
 
-                    _context.ListaSimulados.Add(listaSimulado);
-                }
-
-                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Simulado criado: {SimuladoId} para usuário {UserId} com {QtdQuestoes} questões",
                     simulado.Id, userId, request.NumeroQuestoes);
@@ -87,119 +109,57 @@ namespace qenem.Services
                 throw;
             }
         }
-
-        // ✅ CORRIGIDO: Usar banco de dados em vez de lista em memória
-        public async Task<List<Simulado>> ListarSimulados(string userId)
-        {
-            return await _context.Simulados
-                .Where(s => s.UsuarioId == userId)
-                .Include(s => s.Questoes) // Para carregar questões
-                .OrderByDescending(s => s.DataCriacao)
-                .ToListAsync();
-        }
-
-        // ✅ CORRIGIDO: Buscar no banco com includes necessários
-        public async Task<Simulado?> ObterSimulado(int id)
-        {
-            return await _context.Simulados
-                .Include(s => s.Questoes) // ✅ CRÍTICO: Para AcertosPorArea funcionar
-                .Include(s => s.Respostas)        // Para respostas se usar RespostaUsuario
-                .FirstOrDefaultAsync(s => s.Id == id);
-        }
-
-        // ✅ CORRIGIDO: Registrar resposta no banco de dados
+        /// <summary>
+        /// Salva a resposta do usuário para uma questão específica do simulado
+        /// </summary>
+        /// <param name="simuladoId"></param>
+        /// <param name="questaoId"></param>
+        /// <param name="resposta"></param>
+        /// <returns></returns>
         public async Task<bool> RegistrarResposta(int simuladoId, int questaoId, string resposta)
         {
             try
             {
-                // Buscar a questão no simulado
-                var questaoSimulado = await _context.ListaSimulados
-                    .FirstOrDefaultAsync(ls =>
-                        ls.SimuladoId == simuladoId &&
-                        ls.QuestaoId == questaoId);
+                var respostaUsuario = await _context.RespostasUsuario
+                    .FirstOrDefaultAsync(r => r.QuestaoId == questaoId);
 
-                if (questaoSimulado == null)
+                bool estaCorreta = await ValidarResposta(simuladoId, questaoId, resposta);
+
+                if (respostaUsuario == null)
                 {
-                    _logger.LogWarning("Questão {QuestaoId} não encontrada no simulado {SimuladoId}", questaoId, simuladoId);
-                    return false;
+                    respostaUsuario = new RespostaUsuario
+                    {
+                        QuestaoId = questaoId,
+                        Resposta = resposta,
+                        EstaCorreta = estaCorreta,
+                        DataResposta = DateTime.UtcNow
+                    };
+                    _context.RespostasUsuario.Add(respostaUsuario);
+                }
+                else
+                {
+                    respostaUsuario.Resposta = resposta;
+                    respostaUsuario.EstaCorreta = estaCorreta;
+                    respostaUsuario.DataResposta = DateTime.UtcNow;
                 }
 
-                // ✅ Registrar a resposta
-                questaoSimulado.RespostaUsuario = resposta;
-                questaoSimulado.EstaCorreta = await VerificarSeRespostaEstaCorreta(questaoId, resposta);
-                questaoSimulado.DataResposta = DateTime.UtcNow;
-
                 await _context.SaveChangesAsync();
-
-                _logger.LogDebug("Resposta '{Resposta}' registrada para questão {QuestaoId} no simulado {SimuladoId}",
-                    resposta, questaoId, simuladoId);
-
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao registrar resposta para questão {QuestaoId} no simulado {SimuladoId}",
-                    questaoId, simuladoId);
+                _logger.LogError(ex, "Erro ao registrar resposta para questão {QuestaoId} no simulado {SimuladoId}", questaoId, simuladoId);
                 return false;
             }
         }
 
-        // ✅ CORRIGIDO:        //public async Task<bool> FinalizarSimulado(int simuladoId, TimeSpan? tempoGasto = null)
-        //{
-        //    try
-        //    {
-        //        var simulado = await _context.Simulados
-        //            .Include(s => s.Questoes)
-        //            .FirstOrDefaultAsync(s => s.Id == simuladoId);
-
-        //        if (simulado == null)
-        //        {
-        //            _logger.LogWarning("Simulado {SimuladoId} não encontrado para finalização", simuladoId);
-        //            return false;
-        //        }
-
-        //        // Definir tempo gasto
-        //        if (tempoGasto.HasValue)
-        //        {
-        //            simulado.TempoGasto = tempoGasto;
-        //        }
-
-        //        await _context.SaveChangesAsync();
-
-        //        // Log das estatísticas
-        //        var totalRespondidas = simulado.Questoes.Count(q => q. != null);
-        //        var totalAcertos = simulado.Questoes.Count(q => q.EstaCorreta == true);
-        //        var acertosPorArea = simulado.AcertosPorArea;
-
-        //        _logger.LogInformation("Simulado {SimuladoId} finalizado - {TotalAcertos}/{TotalRespondidas} questões corretas. Tempo: {Tempo}",
-        //            simuladoId, totalAcertos, totalRespondidas, tempoGasto?.ToString(@"hh\:mm\:ss") ?? "N/A");
-
-        //        _logger.LogDebug("Acertos por área: {AcertosPorArea}",
-        //            string.Join(", ", acertosPorArea.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
-
-        //        return true;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, "Erro ao finalizar simulado {SimuladoId}", simuladoId);
-        //        return false;
-        //    }
-        //} Finalizar simulado com cálculos reais
-
-
-        // ✅ NOVO: Método para verificar se resposta está correta
-        private async Task<bool> VerificarSeRespostaEstaCorreta(int questaoId, string resposta)
+        #region Métodos auxiliares
+        private async Task<bool> ValidarResposta(int simuladoId, int questaoId, string resposta)
         {
             try
             {
-                // IMPLEMENTAR baseado em como você armazena as questões
-                // Opção 1: Se você tem DbSet<Question>
-                // var questao = await _context.Questions.FindAsync(questaoId);
-                // return questao?.CorrectAnswer?.Equals(resposta, StringComparison.OrdinalIgnoreCase) ?? false;
-
-                // Opção 2: Se você usa o QuestionService
-                var questoes = await Task.Run(() => _questionService.GetAllQuestions());
-                var questao = questoes.FirstOrDefault(q => q.id == questaoId);
+                var questoesDoSimulado = await ObterQuestoesSimulado(simuladoId);
+                var questao = questoesDoSimulado.FirstOrDefault(q => q.id == questaoId);
 
                 if (questao?.correctAlternative != null)
                 {
@@ -216,7 +176,21 @@ namespace qenem.Services
             }
         }
 
-        // ✅ NOVO: Métodos utilitários adicionais
+        private async Task VincularQuestoesSimulado(int simuladoId, List<Question> questoes)
+        {
+            foreach (var questao in questoes)
+            {
+                var listaSimulado = new ListaQuestaoSimulado
+                {
+                    SimuladoId = simuladoId,
+                    QuestaoId = questao.id,
+                    AreaQuestao = questao.discipline
+                };
+                _context.ListaSimulados.Add(listaSimulado);
+            }
+            await _context.SaveChangesAsync();
+        }
+        #endregion
 
         /// <summary>
         /// Obtém relatório completo do simulado com estatísticas
@@ -249,52 +223,7 @@ namespace qenem.Services
         /// <summary>
         /// Verifica se simulado pode ser editado (não finalizado)
         /// </summary>
-        public async Task<bool> SimuladoPodeSerEditado(int simuladoId)
-        {
-            var simulado = await _context.Simulados.FindAsync(simuladoId);
-            return simulado?.TempoGasto == null; // Se não tem tempo gasto, ainda não foi finalizado
-        }
 
-        /// <summary>
-        /// Obtém progresso do simulado (quantas questões foram respondidas)
-        /// </summary>
-        //public async Task<SimuladoProgresso?> ObterProgressoSimulado(int simuladoId)
-        //{
-        //    var simulado = await ObterSimulado(simuladoId);
 
-        //    if (simulado == null)
-        //        return null;
-
-        //    var respondidas = simulado.Questoes.Count(q => q. != null);
-
-        //    return new SimuladoProgresso
-        //    {
-        //        SimuladoId = simuladoId,
-        //        QuestoesRespondidas = respondidas,
-        //        TotalQuestoes = simulado.NumeroQuestoes,
-        //        PorcentagemCompleta = (double)respondidas / simulado.NumeroQuestoes * 100
-        //    };
-        //}
-    }
-    public class SimuladoRelatorio
-    {
-        public int SimuladoId { get; set; }
-        public string Nome { get; set; } = string.Empty;
-        public DateTime DataCriacao { get; set; }
-        public TimeSpan? TempoGasto { get; set; }
-        public int TotalQuestoes { get; set; }
-        public int QuestoesRespondidas { get; set; }
-        public int TotalAcertos { get; set; }
-        public double PorcentagemGeral { get; set; }
-        public Dictionary<string, int> AcertosPorArea { get; set; } = new();
-        public List<string> AreasAvaliadas { get; set; } = new();
-    }
-
-    public class SimuladoProgresso
-    {
-        public int SimuladoId { get; set; }
-        public int QuestoesRespondidas { get; set; }
-        public int TotalQuestoes { get; set; }
-        public double PorcentagemCompleta { get; set; }
     }
 }

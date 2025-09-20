@@ -13,7 +13,7 @@ namespace qenem.Data
         public DbSet<UsuarioArea> UsuarioAreas { get; set; }
         public DbSet<Lista> Listas { get; set; }
         public DbSet<ListaQuestao> ListaQuestoes { get; set; }
-        public DbSet<ListaSimulado> ListaSimulados { get; set; }
+        public DbSet<ListaQuestaoSimulado> ListaSimulados { get; set; }
         public DbSet<Simulado> Simulados { get; set; }
         public DbSet<RespostaUsuario> RespostasUsuario { get; set; }
 

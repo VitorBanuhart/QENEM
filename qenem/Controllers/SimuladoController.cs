@@ -77,50 +77,50 @@ namespace qenem.Controllers
                 return Json(new { success = false, message = "Ocorreu um erro inesperado. Tente novamente." });
             }
         }
-
+        /// <summary>
+        /// carrega dados para a view do simulado com questao inicial ou atual do progresso salvo
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="questaoIndex"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> RealizaSimulado(int id, int questaoIndex = 0)
-        {
-            var simulado = await _simuladoService.ObterSimulado(id);
+        { 
+           
+            var simulado = await _context.Simulados //buscar o simulado
+                .Include(s => s.Respostas)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
             if (simulado == null)
-            {
                 return NotFound();
-            }
 
-            // Carrega todas as questões
-            var allQuestions = _questionService.GetAllQuestions();
-
-            // Filtra pelos anos selecionados (se houver) e áreas de interesse
-            var anosSelecionados = (simulado.AnosSelecionados != null && simulado.AnosSelecionados.Count > 0)
-                ? simulado.AnosSelecionados
-                : allQuestions.Select(q => q.year).Distinct().ToList();
-
-            var areasSelecionadas = (simulado.AreasInteresse != null && simulado.AreasInteresse.Count > 0)
-                ? simulado.AreasInteresse
-                : allQuestions.Select(q => q.discipline).Distinct().ToList();
-
-            // Filtra e embaralha as questões
-            var questoesDoSimulado = allQuestions
-                .Where(q => anosSelecionados.Contains(q.year) && areasSelecionadas.Contains(q.discipline)).OrderBy(q => Guid.NewGuid()) // Aleatoriza
-                .Take(simulado.NumeroQuestoes)
-                .ToList();
-
-            if (questaoIndex < 0 || questaoIndex >= questoesDoSimulado.Count)
+            if (simulado.Finalizado)
             {
-                // Simulado terminado, vai para a página de resultados
                 return RedirectToAction("Resultado", new { id = simulado.Id });
             }
 
-            // Obtém todas as respostas do usuário para as bolinhas de progresso
+            var questoesDoSimulado = await _simuladoService.ObterQuestoesSimulado(id);
+
+            //TO DO:
+            //entender a lógica para redirecionar p/ resultado
+            if (questaoIndex < 0 || questaoIndex >= questoesDoSimulado.Count) 
+            {
+                //await _simuladoService.FinalizarSimulado(simulado.Id, /* tempoGasto */ null);
+                return RedirectToAction("Resultado", new { id = simulado.Id });
+            }
+
+            var questaoAtual = questoesDoSimulado[questaoIndex];
+
             var respostasSalvas = (simulado.Respostas ?? new List<RespostaUsuario>())
                 .Where(r => !string.IsNullOrEmpty(r.Resposta))
                 .ToDictionary(r => r.QuestaoId, r => r.Resposta);
 
-            // Busca a resposta do usuário para a questão atual
-            var questaoAtual = questoesDoSimulado[questaoIndex];
             var respostaUsuario = respostasSalvas.ContainsKey(questaoAtual.id) ? respostasSalvas[questaoAtual.id] : null;
 
-            // Monta objeto para a View
+            //monta objeto pra view
+            // TO DO:
+            // refatorar para ViewModel?
+            // garantir/revisar dados enviados
             var dadosView = new
             {
                 SimuladoId = simulado.Id,
@@ -141,12 +141,12 @@ namespace qenem.Controllers
             return View();
         }
 
-        private async Task<List<ListaSimulado>> ObterSimuladosUsuario()
+        private async Task<List<ListaQuestaoSimulado>> ObterSimuladosUsuario()
         {
             var usuario = await _userManager.GetUserAsync(User);
             if (usuario == null)
             {
-                return new List<ListaSimulado>(); // Retorna uma lista vazia se o usuário não existir.
+                return new List<ListaQuestaoSimulado>(); // Retorna uma lista vazia se o usuário não existir.
             }
 
             var userId = usuario.Id;
@@ -156,7 +156,7 @@ namespace qenem.Controllers
                 .ToListAsync();
             if (!simuladosExistentes.Any())
             {
-                return new List<ListaSimulado>();
+                return new List<ListaQuestaoSimulado>();
             }
             return simuladosExistentes;
         }

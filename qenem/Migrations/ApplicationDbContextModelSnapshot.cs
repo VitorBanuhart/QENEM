@@ -305,7 +305,7 @@ namespace qenem.Migrations
                     b.ToTable("ListaQuestoes");
                 });
 
-            modelBuilder.Entity("qenem.Models.ListaSimulado", b =>
+            modelBuilder.Entity("qenem.Models.ListaQuestaoSimulado", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -317,17 +317,11 @@ namespace qenem.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<DateTime?>("DataResposta")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool?>("EstaCorreta")
-                        .HasColumnType("bit");
+                    b.Property<int>("Ordem")
+                        .HasColumnType("int");
 
                     b.Property<int>("QuestaoId")
                         .HasColumnType("int");
-
-                    b.Property<string>("RespostaUsuario")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
@@ -339,61 +333,6 @@ namespace qenem.Migrations
                     b.ToTable("ListaSimulados");
                 });
 
-            modelBuilder.Entity("qenem.Models.Question", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<int?>("SimuladoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UniqueId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("alternativesIntroduction")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("context")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("correctAlternative")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("discipline")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.PrimitiveCollection<string>("files")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("index")
-                        .HasColumnType("int");
-
-                    b.Property<string>("language")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("year")
-                        .HasColumnType("int");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("SimuladoId");
-
-                    b.ToTable("Question");
-                });
-
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
                 {
                     b.Property<int>("Id")
@@ -401,6 +340,12 @@ namespace qenem.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("DataResposta")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("EstaCorreta")
+                        .HasColumnType("bit");
 
                     b.Property<int>("QuestaoId")
                         .HasColumnType("int");
@@ -436,6 +381,9 @@ namespace qenem.Migrations
 
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("Finalizado")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nome")
                         .IsRequired()
@@ -555,7 +503,7 @@ namespace qenem.Migrations
                     b.Navigation("Lista");
                 });
 
-            modelBuilder.Entity("qenem.Models.ListaSimulado", b =>
+            modelBuilder.Entity("qenem.Models.ListaQuestaoSimulado", b =>
                 {
                     b.HasOne("qenem.Models.Simulado", "Simulado")
                         .WithMany()
@@ -564,13 +512,6 @@ namespace qenem.Migrations
                         .IsRequired();
 
                     b.Navigation("Simulado");
-                });
-
-            modelBuilder.Entity("qenem.Models.Question", b =>
-                {
-                    b.HasOne("qenem.Models.Simulado", null)
-                        .WithMany("Questoes")
-                        .HasForeignKey("SimuladoId");
                 });
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
@@ -627,8 +568,6 @@ namespace qenem.Migrations
 
             modelBuilder.Entity("qenem.Models.Simulado", b =>
                 {
-                    b.Navigation("Questoes");
-
                     b.Navigation("Respostas");
                 });
 #pragma warning restore 612, 618
