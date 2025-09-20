@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace qenem.Models
 {
@@ -7,7 +8,12 @@ namespace qenem.Models
     {
         [Key]
         public int Id { get; set; }
-        public int QuestaoId { get; set; }
+
+        public int SimuladoId { get; set; }
+
+        [ForeignKey("SimuladoId")]
+        public Simulado? Simulado { get; set; }
+        public string QuestaoId { get; set; }
         public string? Resposta { get; set; }
         public bool? EstaCorreta { get; set; }
         public DateTime? DataResposta { get; set; }

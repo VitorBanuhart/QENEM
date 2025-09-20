@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250916234647_initialMigration")]
-    partial class initialMigration
+    [Migration("20250920173600_MigrationInitial")]
+    partial class MigrationInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -158,6 +158,25 @@ namespace qenem.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("qenem.Models.Alternative", b =>
+                {
+                    b.Property<string>("file")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("letter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("Alternative");
+                });
+
             modelBuilder.Entity("qenem.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -289,6 +308,107 @@ namespace qenem.Migrations
                     b.ToTable("ListaQuestoes");
                 });
 
+            modelBuilder.Entity("qenem.Models.ListaQuestaoSimulado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AreaQuestao")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestaoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SimuladoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SimuladoId");
+
+                    b.ToTable("ListaSimulados");
+                });
+
+            modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("DataResposta")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("EstaCorreta")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuestaoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Resposta")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SimuladoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SimuladoId");
+
+                    b.ToTable("RespostasUsuario");
+                });
+
+            modelBuilder.Entity("qenem.Models.Simulado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.PrimitiveCollection<string>("AnosSelecionados")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("AreasInteresse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Finalizado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NumeroQuestoes")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan?>("TempoGasto")
+                        .HasColumnType("time");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Simulados");
+                });
+
             modelBuilder.Entity("qenem.Models.UsuarioArea", b =>
                 {
                     b.Property<int>("Id")
@@ -386,6 +506,35 @@ namespace qenem.Migrations
                     b.Navigation("Lista");
                 });
 
+            modelBuilder.Entity("qenem.Models.ListaQuestaoSimulado", b =>
+                {
+                    b.HasOne("qenem.Models.Simulado", "Simulado")
+                        .WithMany()
+                        .HasForeignKey("SimuladoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Simulado");
+                });
+
+            modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
+                {
+                    b.HasOne("qenem.Models.Simulado", null)
+                        .WithMany("Respostas")
+                        .HasForeignKey("SimuladoId");
+                });
+
+            modelBuilder.Entity("qenem.Models.Simulado", b =>
+                {
+                    b.HasOne("qenem.Models.ApplicationUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("qenem.Models.UsuarioArea", b =>
                 {
                     b.HasOne("qenem.Models.AreaInteresse", "AreaInteresse")
@@ -418,6 +567,11 @@ namespace qenem.Migrations
             modelBuilder.Entity("qenem.Models.Lista", b =>
                 {
                     b.Navigation("ListaQuestoes");
+                });
+
+            modelBuilder.Entity("qenem.Models.Simulado", b =>
+                {
+                    b.Navigation("Respostas");
                 });
 #pragma warning restore 612, 618
         }
