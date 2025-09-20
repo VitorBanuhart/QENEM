@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:qenem/Migrations/20250920191312_simulado1.cs
     public partial class simulado1 : Migration
-========
-    public partial class MigrationInitial : Migration
->>>>>>>> bd3b9ca8bcc3c5caf0274f4b3e54939b186620b1:qenem/Migrations/20250920173600_MigrationInitial.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -286,6 +282,7 @@ namespace qenem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SimuladoId = table.Column<int>(type: "int", nullable: false),
                     UniqueId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AreaQuestao = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ordem = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -305,11 +302,11 @@ namespace qenem.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    SimuladoId = table.Column<int>(type: "int", nullable: false),
                     QuestaoId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Resposta = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EstaCorreta = table.Column<bool>(type: "bit", nullable: true),
-                    DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    SimuladoId = table.Column<int>(type: "int", nullable: true)
+                    DataResposta = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -318,7 +315,8 @@ namespace qenem.Migrations
                         name: "FK_RespostasUsuario_Simulados_SimuladoId",
                         column: x => x.SimuladoId,
                         principalTable: "Simulados",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

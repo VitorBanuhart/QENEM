@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250920182313_AddSimuladoIdToRespostaUsuario")]
-    partial class AddSimuladoIdToRespostaUsuario
+    [Migration("20250920205558_simulado2")]
+    partial class simulado2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,17 +317,18 @@ namespace qenem.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AreaQuestao")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Ordem")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuestaoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -350,14 +351,19 @@ namespace qenem.Migrations
                     b.Property<bool?>("EstaCorreta")
                         .HasColumnType("bit");
 
-                    b.Property<int>("QuestaoId")
-                        .HasColumnType("int");
+                    b.Property<string>("QuestaoId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Resposta")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

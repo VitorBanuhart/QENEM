@@ -1,4 +1,5 @@
-﻿@{
+﻿@model qenem.ViewModels.SimuladoViewModel
+@{
     ViewData["Title"] = "Realizando Simulado";
     Layout = null;
 }
@@ -80,18 +81,31 @@
 
             <h4 class="my-4">QUESTÃO @(Model.QuestaoAtualIndex + 1)</h4>
 
-            <p>@Html.Raw(Model.QuestaoAtual.enunciado)</p>
-
-            <form asp-action="RegistrarResposta" method="post">
-                <input type="hidden" name="simuladoId" value="@Model.SimuladoId" />
-                <input type="hidden" name="questaoId" value="@Model.QuestaoAtual.id" />
+            <p>@Html.Raw(Model.QuestaoAtual.context)</p>
+            @if (!string.IsNullOrEmpty(Model.QuestaoAtual.alternativesIntroduction))
+            {
+                <p class="fw-bold">@Model.QuestaoAtual.alternativesIntroduction</p>
+            }
+            <form id="form-resposta">
+                <input type="hidden" id="SimuladoId" value="@Model.SimuladoId" />
+                <input type="hidden" id="QuestaoId" value="@Model.QuestaoAtual.UniqueId" />
 
                 <div class="options mt-4">
                     @foreach (var alt in Model.QuestaoAtual.alternatives)
                     {
-                        var isChecked = Model.RespostaUsuario == alt.Key;
-                        <input type="radio" name="resposta" id="opt@(alt.Key)" value="@alt.Key" checked="@isChecked">
-                        <label for="opt@(alt.Key)" class="option-label">@alt.Key) @alt.Value</label>
+                        var isChecked = Model.RespostaUsuario == alt.letter;
+                        <input type="radio" name="Resposta" id="opt@(alt.letter)" value="@alt.letter" checked="@isChecked" />
+                        <label for="opt@(alt.letter)" class="option-label">
+                            @if (!string.IsNullOrEmpty(alt.file))
+                            {
+                                <img src="@alt.file" alt="Alternativa @alt.letter" />
+                            }
+                            <span class="fw-bold me-2">@alt.letter)</span>
+                            @if (!string.IsNullOrEmpty(alt.text))
+                            {
+                                <span>@alt.text</span>
+                            }
+                        </label>
                     }
                 </div>
 
@@ -113,7 +127,49 @@
         </div>
     </div>
 
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+    
+         document.getElementById('form-resposta').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const simuladoId = document.getElementById('SimuladoId').value;
+            const questaoId = document.getElementById('QuestaoId').value;
+            const resposta = document.querySelector('input[name="Resposta"]:checked')?.value;
+
+            if (!resposta) {
+                Swal.fire('Selecione uma alternativa antes de continuar.');
+                return;
+            }
+
+            const payload = {
+                SimuladoId: simuladoId,
+                QuestaoId: questaoId,
+                Resposta: resposta
+            };
+
+            try {
+                const response = await fetch('/Simulado/RegistrarResposta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Redireciona para a próxima questão
+                    window.location.href = `/Simulado/RealizaSimulado?id=${simuladoId}&questaoIndex=@(Model.QuestaoAtualIndex + 1)`;
+                } else {
+                    Swal.fire('Erro!', result.message || 'Não foi possível registrar a resposta.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Erro!', 'Falha ao enviar resposta.', 'error');
+            }
+        });
+
+        
         let simuladoId = @Model.SimuladoId;
         let elapsedSeconds = 0;
         const timerEl = document.getElementById("timer");

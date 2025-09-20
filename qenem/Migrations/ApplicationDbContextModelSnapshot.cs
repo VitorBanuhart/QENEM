@@ -313,6 +313,10 @@ namespace qenem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AreaQuestao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Ordem")
                         .HasColumnType("int");
 
@@ -353,6 +357,10 @@ namespace qenem.Migrations
 
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

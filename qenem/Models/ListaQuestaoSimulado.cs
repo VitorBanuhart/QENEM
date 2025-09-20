@@ -16,6 +16,7 @@ namespace qenem.Models
         [Required]
         public string UniqueId { get; set; }
 
+        public string AreaQuestao { get; set; }
         // Opcional: ordem da questão no simulado
         public int Ordem { get; set; }
 

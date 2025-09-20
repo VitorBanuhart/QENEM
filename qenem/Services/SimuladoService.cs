@@ -110,22 +110,24 @@ namespace qenem.Services
         /// <param name="questaoId"></param>
         /// <param name="resposta"></param>
         /// <returns></returns>
-        public async Task<bool> RegistrarResposta(int simuladoId, string questaoId, string resposta)
+        public async Task<RespostaUsuario> RegistrarResposta(int simuladoId, string questaoId, string resposta, string userId) 
         {
             try
             {
                 var respostaUsuario = await _context.RespostasUsuario
                     .FirstOrDefaultAsync(r => r.QuestaoId == questaoId);
 
-                bool estaCorreta = await ValidarResposta(simuladoId, questaoId, resposta);
+                bool estaCorreta = await ValidarResposta(simuladoId, questaoId, respostaUsuario);
 
                 if (respostaUsuario == null)
                 {
                     respostaUsuario = new RespostaUsuario
                     {
+                        SimuladoId = simuladoId,
                         QuestaoId = questaoId,
                         Resposta = resposta,
                         EstaCorreta = estaCorreta,
+                        UsuarioId = userId,
                         DataResposta = DateTime.UtcNow
                     };
                     _context.RespostasUsuario.Add(respostaUsuario);
@@ -133,17 +135,17 @@ namespace qenem.Services
                 else
                 {
                     respostaUsuario.Resposta = resposta;
-                    respostaUsuario.EstaCorreta = estaCorreta;
+                    respostaUsuario.SimuladoId = respostaUsuario.SimuladoId;
                     respostaUsuario.DataResposta = DateTime.UtcNow;
                 }
 
                 await _context.SaveChangesAsync();
-                return true;
+                return respostaUsuario;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao registrar resposta para questão {QuestaoId} no simulado {SimuladoId}", questaoId, simuladoId);
-                return false;
+                throw;
             }
         }
 
@@ -177,7 +179,7 @@ namespace qenem.Services
                 .GroupBy(ls => string.IsNullOrWhiteSpace(ls.AreaQuestao) ? "Outros" : ls.AreaQuestao)
                 .Select(g =>
                 {
-                    var questoesIds = g.Select(x => x.QuestaoId).ToHashSet();
+                    var questoesIds = g.Select(x => x.UniqueId).ToHashSet();
                     var total = g.Count();
                     var respondidas = respostas.Count(r => questoesIds.Contains(r.QuestaoId));
                     var acertos = respostas.Count(r => questoesIds.Contains(r.QuestaoId) && r.EstaCorreta == true);
@@ -248,16 +250,19 @@ namespace qenem.Services
         }
 
         #region Métodos auxiliares
-        private async Task<bool> ValidarResposta(int simuladoId, string questaoId, string resposta)
+        private async Task<bool> ValidarResposta(int simuladoId, string questaoId, RespostaUsuario resposta)
         {
             try
             {
+                if (resposta.Id != null || resposta.Id > 0)
+                    return true;
+
                 var questoesDoSimulado = await ObterQuestoesSimulado(simuladoId);
                 var questao = questoesDoSimulado.FirstOrDefault(q => q.UniqueId == questaoId);
 
                 if (questao?.correctAlternative != null)
                 {
-                    return questao.correctAlternative.Equals(resposta, StringComparison.OrdinalIgnoreCase);
+                    return questao.correctAlternative.Equals(resposta.Resposta, StringComparison.OrdinalIgnoreCase);
                 }
 
                 _logger.LogWarning("Questão {QuestaoId} não encontrada para verificação de resposta", questaoId);
@@ -272,12 +277,27 @@ namespace qenem.Services
 
         private async Task VincularQuestoesSimulado(int simuladoId, List<Question> questoes)
         {
+            var linguas = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "ingles", "espanhol" };
+
             foreach (var questao in questoes)
             {
+                // Define a área com tratamento de null e case-insensitive
+                string areaQuestao = "";
+
+                if (linguas.Contains(questao.language ?? ""))
+                {
+                    areaQuestao = questao.language;
+                }
+                else if (!string.IsNullOrEmpty(questao.discipline))
+                {
+                    areaQuestao = questao.discipline;
+                }
+
                 var listaSimulado = new ListaQuestaoSimulado
                 {
                     SimuladoId = simuladoId,
                     UniqueId = questao.UniqueId,
+                    AreaQuestao = areaQuestao
                 };
 
                 _context.ListaSimulados.Add(listaSimulado);
@@ -285,6 +305,7 @@ namespace qenem.Services
 
             await _context.SaveChangesAsync();
         }
+
 
         #endregion
 

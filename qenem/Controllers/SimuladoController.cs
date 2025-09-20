@@ -5,6 +5,7 @@ using qenem.Data;
 using qenem.DTO;
 using qenem.Models;
 using qenem.Services;
+using qenem.ViewModels;
 
 namespace qenem.Controllers
 {
@@ -77,6 +78,37 @@ namespace qenem.Controllers
                 return Json(new { success = false, message = "Ocorreu um erro inesperado. Tente novamente." });
             }
         }
+
+        public async Task<IActionResult> RegistrarResposta([FromBody] RespostaUsuario data)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Usuário não autenticado." });
+                }
+
+                var novaResposta= await _simuladoService.RegistrarResposta(data.SimuladoId, data.QuestaoId, data.Resposta, user.Id);
+
+                if (novaResposta != null)
+                {
+                    return Json(new { success = true, resposta = new { Id = novaResposta.Id } });
+                }
+
+                return Json(new { success = false, message = "Não foi possível registrar a resposta." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Ocorreu um erro inesperado. Tente novamente." });
+            }
+        }
+
+
         /// <summary>
         /// carrega dados para a view do simulado com questao inicial ou atual do progresso salvo
         /// </summary>
@@ -116,12 +148,7 @@ namespace qenem.Controllers
                 .ToDictionary(r => r.QuestaoId, r => r.Resposta);
 
             var respostaUsuario = respostasSalvas.ContainsKey(questaoAtual.UniqueId) ? respostasSalvas[questaoAtual.UniqueId] : null;
-
-            //monta objeto pra view
-            // TO DO:
-            // refatorar para ViewModel?
-            // garantir/revisar dados enviados para model na view
-            var dadosView = new
+            var dadosView = new SimuladoViewModel
             {
                 SimuladoId = simulado.Id,
                 SimuladoNome = simulado.Nome,
@@ -180,6 +207,5 @@ namespace qenem.Controllers
 
             await _simuladoService.SetTempoGastoAsync(id, tempo);
             return Ok();
-        }
-    }
+        }   }
 }
