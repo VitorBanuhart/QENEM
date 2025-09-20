@@ -147,6 +147,106 @@ namespace qenem.Services
             }
         }
 
+        public async Task<SimuladoResultadoDto?> ObterResultadoSimulado(int simuladoId)
+        {
+            // carrega simulado com respostas (se existir relação populada)
+            var simulado = await _context.Simulados
+                .Include(s => s.Respostas)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == simuladoId);
+
+            if (simulado == null)
+                return null;
+
+            // carregue lista de questões vinculadas ao simulado (com AreaQuestao)
+            var listaQuestoes = await _context.ListaSimulados
+                .AsNoTracking()
+                .Where(ls => ls.SimuladoId == simuladoId)
+                .ToListAsync();
+
+            // obtenha respostas do simulado (usa navigation se presente, senão consulta por SimuladoId)
+            var respostas = (simulado.Respostas != null && simulado.Respostas.Any())
+                ? simulado.Respostas
+                : (await _context.RespostasUsuario
+                    .AsNoTracking()
+                    .Where(r => r.SimuladoId == simuladoId)
+                    .ToListAsync());
+
+            // agrupa por área
+            var areas = listaQuestoes
+                .GroupBy(ls => string.IsNullOrWhiteSpace(ls.AreaQuestao) ? "Outros" : ls.AreaQuestao)
+                .Select(g =>
+                {
+                    var questoesIds = g.Select(x => x.QuestaoId).ToHashSet();
+                    var total = g.Count();
+                    var respondidas = respostas.Count(r => questoesIds.Contains(r.QuestaoId));
+                    var acertos = respostas.Count(r => questoesIds.Contains(r.QuestaoId) && r.EstaCorreta == true);
+                    // porcentagem calculada sobre o total de questões da área (mantive a regra que você mostrou)
+                    var perc = total == 0 ? 0.0 : Math.Round((double)acertos * 100.0 / total, 2);
+
+                    return new AreaResultadoDto
+                    {
+                        Area = g.Key,
+                        TotalQuestoes = total,
+                        QuestoesRespondidas = respondidas,
+                        Acertos = acertos,
+                        Porcentagem = perc
+                    };
+                })
+                .OrderByDescending(a => a.TotalQuestoes)
+                .ToList();
+
+            var totalQuestoes = listaQuestoes.Count;
+            var totalAcertos = areas.Sum(a => a.Acertos);
+            var totalRespondidas = respostas.Count;
+            var percGeral = totalQuestoes == 0 ? 0.0 : Math.Round((double)totalAcertos * 100.0 / totalQuestoes, 2);
+
+            var resultado = new SimuladoResultadoDto
+            {
+                SimuladoId = simulado.Id,
+                Nome = simulado.Nome ?? "Simulado",
+                DataCriacao = simulado.DataCriacao,
+                TempoGasto = simulado.TempoGasto,
+                TotalQuestoes = totalQuestoes,
+                QuestoesRespondidas = totalRespondidas,
+                TotalAcertos = totalAcertos,
+                PorcentagemGeral = percGeral,
+                ResultadosPorArea = areas
+            };
+
+            return resultado;
+        }
+
+        public async Task<TimeSpan> GetTempoGastoAsync(int simuladoId)
+        {
+            var simulado = await _context.Simulados
+                .Where(s => s.Id == simuladoId)
+                .Select(s => new { s.TempoGasto })
+                .FirstOrDefaultAsync();
+
+            if (simulado == null || simulado.TempoGasto == null) return TimeSpan.Zero;
+            return simulado.TempoGasto.Value;
+        }
+
+        public async Task SetTempoGastoAsync(int simuladoId, TimeSpan tempoTotal)
+        {
+            var simulado = await _context.Simulados.FindAsync(simuladoId);
+            if (simulado == null) throw new InvalidOperationException("Simulado não encontrado.");
+
+            simulado.TempoGasto = tempoTotal;
+            _context.Simulados.Update(simulado);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddTempoGastoAsync(int simuladoId, TimeSpan delta)
+        {
+            var simulado = await _context.Simulados.FindAsync(simuladoId);
+            if (simulado == null) throw new InvalidOperationException("Simulado não encontrado.");
+            simulado.TempoGasto = (simulado.TempoGasto ?? TimeSpan.Zero).Add(delta);
+            _context.Simulados.Update(simulado);
+            await _context.SaveChangesAsync();
+        }
+
         #region Métodos auxiliares
         private async Task<bool> ValidarResposta(int simuladoId, string questaoId, string resposta)
         {

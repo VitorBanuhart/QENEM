@@ -351,7 +351,7 @@ namespace qenem.Migrations
                     b.Property<string>("Resposta")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SimuladoId")
+                    b.Property<int>("SimuladoId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -514,9 +514,13 @@ namespace qenem.Migrations
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
                 {
-                    b.HasOne("qenem.Models.Simulado", null)
+                    b.HasOne("qenem.Models.Simulado", "Simulado")
                         .WithMany("Respostas")
-                        .HasForeignKey("SimuladoId");
+                        .HasForeignKey("SimuladoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Simulado");
                 });
 
             modelBuilder.Entity("qenem.Models.Simulado", b =>

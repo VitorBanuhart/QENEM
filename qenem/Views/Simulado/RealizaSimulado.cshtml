@@ -1,6 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Realizando Simulado";
-    Layout = null; // Layout em tela cheia, sem o menu padrão
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -54,7 +54,8 @@
                 background-color: #cfe2ff;
             }
     </style>
-</head><body class="bg-light">
+</head>
+<body class="bg-light">
     <div class="container my-5">
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -73,23 +74,18 @@
                     {
                         dotClass += " active";
                     }
-                    // Esta lógica precisa ser ajustada para verificar se a questão no índice 'i' foi respondida
-                    // else if (Model.RespostasSalvas.ContainsKey(questoesDoSimulado[i].id)) 
-                    // {
-                    //      dotClass += " answered";
-                    // }
                     <span class="@dotClass"></span>
                 }
             </div>
 
             <h4 class="my-4">QUESTÃO @(Model.QuestaoAtualIndex + 1)</h4>
 
-            <p>@Html.Raw(Model.QuestaoAtual.enunciado)</p> 
-            
+            <p>@Html.Raw(Model.QuestaoAtual.enunciado)</p>
+
             <form asp-action="RegistrarResposta" method="post">
                 <input type="hidden" name="simuladoId" value="@Model.SimuladoId" />
                 <input type="hidden" name="questaoId" value="@Model.QuestaoAtual.id" />
-                
+
                 <div class="options mt-4">
                     @foreach (var alt in Model.QuestaoAtual.alternatives)
                     {
@@ -102,19 +98,70 @@
                 <hr>
 
                 <div class="d-flex justify-content-between mt-3">
-                     @if (Model.QuestaoAtualIndex > 0)
+                    @if (Model.QuestaoAtualIndex > 0)
                     {
                         <a asp-action="RealizaSimulado" asp-route-id="@Model.SimuladoId" asp-route-questaoIndex="@(Model.QuestaoAtualIndex - 1)" class="btn btn-secondary">Questão Anterior</a>
                     }
                     else
                     {
-                         <span></span>
+                        <span></span>
                     }
-                    
+
                     <button type="submit" class="btn btn-primary">Próxima Questão</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        let simuladoId = @Model.SimuladoId;
+        let elapsedSeconds = 0;
+        const timerEl = document.getElementById("timer");
+
+        function formatTime(seconds) {
+            let h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+            let m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+            let s = (seconds % 60).toString().padStart(2, "0");
+            return `${h}:${m}:${s}`;
+        }
+
+        async function loadTempo() {
+            try {
+                const response = await fetch(`/Simulado/GetTempo/${simuladoId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    elapsedSeconds = data.seconds || 0;
+                    timerEl.textContent = formatTime(elapsedSeconds);
+                }
+            } catch (e) {
+                console.error("Erro ao carregar tempo:", e);
+            }
+        }
+
+        async function saveTempo() {
+            try {
+                await fetch(`/Simulado/SetTempo/${simuladoId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ seconds: elapsedSeconds })
+                });
+            } catch (e) {
+                console.error("Erro ao salvar tempo:", e);
+            }
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                elapsedSeconds++;
+                timerEl.textContent = formatTime(elapsedSeconds);
+            }, 1000);
+
+            setInterval(saveTempo, 10000); // salva a cada 10s
+        }
+
+        window.addEventListener("beforeunload", saveTempo);
+
+        loadTempo().then(startTimer);
+    </script>
 </body>
 </html>

@@ -160,5 +160,26 @@ namespace qenem.Controllers
             }
             return simuladosExistentes;
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTempo(int id)
+        {
+            var tempo = await _simuladoService.GetTempoGastoAsync(id);
+
+            // envia para o front em segundos
+            return Json(new { seconds = (int)tempo.TotalSeconds });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetTempo(int id, [FromBody] TempoDto dto)
+        {
+            if (dto == null || dto.Seconds < 0)
+                return BadRequest("seconds inválido");
+
+            var tempo = TimeSpan.FromSeconds(dto.Seconds);
+
+            await _simuladoService.SetTempoGastoAsync(id, tempo);
+            return Ok();
+        }
     }
 }
