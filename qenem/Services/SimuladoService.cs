@@ -65,14 +65,11 @@ namespace qenem.Services
                 if (request.NumeroQuestoes > 180)
                     throw new InvalidOperationException("O simulado não pode ter mais que 180 questões.");
 
-                // TO DO:
-                // Implementar obter quantidade correta de questoes baseado nos filtros do request
-                // Exemplo: se o usuário escolheu 3 áreas e 2 linguagens, distribuir as questões proporcionalmente
-                // Assim como quantidade e distribuição por ano
-                var questoesSelecionadas = await Task.Run(() =>
-                    _questionService.GetRandomQuestions(request.AreasSelecionadas, request.LinguagensSelecionadas, userId.ToString())
+                var questoesSelecionadas = _questionService.GetDistributedQuestions(
+                    request.AreasSelecionadas,
+                    request.AnosSelecionados,
+                    request.NumeroQuestoes
                 );
-                    
                 if (!questoesSelecionadas.Any())
                     throw new InvalidOperationException("Nenhuma questão encontrada para os critérios selecionados.");
 
@@ -80,21 +77,18 @@ namespace qenem.Services
                 {
                     UsuarioId = userId,
                     Nome = request.NomeSimulado.Length > 30 ? request.NomeSimulado[..30] : request.NomeSimulado,
-                    AreasInteresse = request.AreasSelecionadas
-                        .Concat(request.LinguagensSelecionadas ?? new List<string>())
-                        .ToList(),
+                    AreasInteresse = request.AreasSelecionadas,
                     AnosSelecionados = request.AnosSelecionados,
                     NumeroQuestoes = request.NumeroQuestoes,
                     DataCriacao = DateTime.UtcNow
                 };
 
                 _context.Simulados.Add(simulado);
-                await _context.SaveChangesAsync(); // Para obter o Id do simulado
+                await _context.SaveChangesAsync(); //obtem o Id do simulado
 
                 var questoesParaSimulado = questoesSelecionadas.Take(request.NumeroQuestoes).ToList();
 
                 //vincula questões ao simulado
-                //precisa que o as questoes venham corretamente do GetRandomQuestions
                 await VincularQuestoesSimulado(simulado.Id, questoesParaSimulado); 
 
 
@@ -178,18 +172,33 @@ namespace qenem.Services
 
         private async Task VincularQuestoesSimulado(int simuladoId, List<Question> questoes)
         {
+            var seletores = new Dictionary<string, Func<Question, string>>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "ingles", q => q.language },
+                { "espanhol", q => q.language }
+            };
+
             foreach (var questao in questoes)
             {
+                string area;
+                if (!string.IsNullOrEmpty(questao.language) && seletores.ContainsKey(questao.language))
+                    area = seletores[questao.language](questao);
+                else
+                    area = questao.discipline;
+
                 var listaSimulado = new ListaQuestaoSimulado
                 {
                     SimuladoId = simuladoId,
                     QuestaoId = questao.id,
-                    AreaQuestao = questao.discipline
+                    AreaQuestao = area
                 };
+
                 _context.ListaSimulados.Add(listaSimulado);
             }
+
             await _context.SaveChangesAsync();
         }
+
         #endregion
 
         /// <summary>

@@ -120,7 +120,7 @@ namespace qenem.Controllers
             //monta objeto pra view
             // TO DO:
             // refatorar para ViewModel?
-            // garantir/revisar dados enviados
+            // garantir/revisar dados enviados para model na view
             var dadosView = new
             {
                 SimuladoId = simulado.Id,

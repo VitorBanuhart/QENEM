@@ -11,7 +11,6 @@
         public string NomeSimulado { get; set; }
         public int NumeroQuestoes { get; set; }
         public List<string> AreasSelecionadas { get; set; }
-        public List<string> LinguagensSelecionadas{ get; set; }
         public List<int> AnosSelecionados { get; set; }
     }
 
