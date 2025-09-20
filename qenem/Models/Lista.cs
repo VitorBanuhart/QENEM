@@ -12,7 +12,7 @@ namespace qenem.Models
         [Required]
         [MaxLength(30)]
         public string Nome { get; set; }
-       
+
         [Required]
         public string UsuarioId { get; set; }
 

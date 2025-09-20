@@ -49,6 +49,8 @@ namespace qenem.Services
             return questions;
         }
 
+        public List<Question> GetAllQuestions() => LoadQuestions();
+
         /// <summary>
         /// Retorna 10 questões aleatórias de acordo com a disciplina escolhida.
         /// </summary>

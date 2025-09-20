@@ -1,4 +1,6 @@
-﻿namespace qenem.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace qenem.Models
 {
 
     public class Question
@@ -13,12 +15,14 @@
         public List<string> files { get; set; }
         public string correctAlternative { get; set; }
         public string alternativesIntroduction { get; set; }
+        [NotMapped]
         public List<Alternative> alternatives { get; set; }
         public string UniqueId { get; set; } 
     }
 
     public class Alternative
     {
+        //public int id { get; set; }
         public string letter { get; set; }
         public string text { get; set; }
         public string? file { get; set; }

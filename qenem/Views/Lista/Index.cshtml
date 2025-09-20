@@ -7,8 +7,6 @@
 
 <div class="container mt-4">
     <ul class="nav nav-tabs">
-        <li class="nav-item"><a class="nav-link" href="#">Simulados</a></li>
-        <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "ListarQuestoes")">Questões</a></li>
         <li class="nav-item"><a class="nav-link active" aria-current="page" href="@Url.Action("Index", "Lista")">Listas</a></li>
     </ul>
 
@@ -30,12 +28,17 @@
                 foreach (var lista in Model)
                 {
                     <div class="d-flex justify-content-between align-items-center p-2 border-bottom" data-lista-id="@lista.Id">
-                        <span>@lista.Nome</span>
+                        <a href="@Url.Action("Questoes", "Lista", new { id = lista.Id })" class="text-decoration-none fw-bold">
+                            @lista.Nome
+                        </a>
                         <div>
                             <input class="form-check-input" type="checkbox" value="" id="check-@lista.Id" title="Selecionar lista">
 
                             <button class="btn btn-sm btn-outline-danger ms-2 btn-excluir" data-id="@lista.Id" title="Excluir lista">
                                 <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button class="btn btn-info" onclick='renomearLista(@lista.Id)' title="Renomear lista">
+                                <i class="fas fa-pencil"></i>
                             </button>
                         </div>
                     </div>
@@ -44,7 +47,7 @@
         </div>
         <div class="card-footer">
             <button class="btn btn-primary" id="btn-criar-lista">Criar Lista</button>
-            <button class="btn btn-secondary">? Ajuda</button>
+           
         </div>
     </div>
 </div>
@@ -208,5 +211,54 @@
                 }
             });
         });
+        async function renomearLista(listaId) { // 1. Removido o parâmetro 'novoNome'
+            const { value: novoNome, isConfirmed } = await Swal.fire({ // 2. Captura o valor e a confirmação
+                title: "Renomear lista",
+                input: 'text',
+                inputLabel: 'Insira o novo nome (máx 30 caracteres)',
+                inputPlaceholder: 'NOVO NOME DA LISTA...',
+                showCancelButton: true,
+                confirmButtonText: "Sim, renomear",
+                cancelButtonText: "Cancelar",
+                inputValidator: (value) => {
+                    if (!value || value.trim() === '') {
+                        return 'O nome não pode ser vazio!';
+                    }
+                    if (value.length > 30) {
+                        return 'O nome não pode ter mais de 30 caracteres!';
+                    }
+                }
+            });
+            // Sai da função se o usuário não confirmou
+            if (!isConfirmed || !novoNome) return;
+
+            Swal.fire({ title: 'Renomeando...', didOpen: () => Swal.showLoading() });
+
+            try {
+                // 3. URL corrigida para '/Lista/RenomearLista'
+                const response = await fetch('/Lista/RenomearLista', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    // 4. Enviando os dados corretos
+                    body: JSON.stringify({ ListaId: listaId, NovoNome: novoNome.trim() })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // Atualiza o nome da lista na tela dinamicamente
+                    const elementoLista = document.querySelector(`div[data-lista-id='${listaId}'] a`);
+                    if (elementoLista) {
+                        elementoLista.textContent = result.novoNome;
+                    }
+                    Swal.fire("Sucesso!", "Lista renomeada!", "success");
+                } else {
+                    Swal.fire("Erro", result.message || "Falha ao renomear a lista.", "error");
+                }
+            } catch (err) {
+                console.error('Erro na requisição para renomear:', err);
+                Swal.fire("Erro", "Problema na requisição. Verifique o console para mais detalhes.", "error");
+            }
+        }
     </script>
 }

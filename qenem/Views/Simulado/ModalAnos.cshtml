@@ -1,0 +1,27 @@
+﻿@*
+    Partial View para a Figura 9 - Janela Modal para Inserção dos Anos
+*@
+<div class="modal fade" id="modalAnos" tabindex="-1" aria-labelledby="modalAnosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAnosLabel">Inserir Anos Específicos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Coloque os anos que você deseja separados por vírgula. <br>Ex: 2006,2009,2012</p>
+                <div class="mb-3">
+                    <label for="inputAnos" class="form-label">Insira o(s) ano(s)</label>
+                    <input type="text" class="form-control" id="inputAnos" placeholder="2020,2021,2022">
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary">? Ajuda</button>
+                <div>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancela</button>
+                    <button type="button" id="btnConfirmaAnos" class="btn btn-success">Confirma</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
