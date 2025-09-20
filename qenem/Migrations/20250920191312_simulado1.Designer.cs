@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250920030943_feat Inicio implementacao simulado")]
-    partial class featInicioimplementacaosimulado
+    [Migration("20250920191312_simulado1")]
+    partial class simulado1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -316,18 +316,15 @@ namespace qenem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AreaQuestao")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<int>("Ordem")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestaoId")
                         .HasColumnType("int");
 
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -350,8 +347,9 @@ namespace qenem.Migrations
                     b.Property<bool?>("EstaCorreta")
                         .HasColumnType("bit");
 
-                    b.Property<int>("QuestaoId")
-                        .HasColumnType("int");
+                    b.Property<string>("QuestaoId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Resposta")
                         .HasColumnType("nvarchar(max)");

@@ -137,8 +137,6 @@ namespace qenem.Services
             int qtdPorArea = quantidadeTotal / areasSelecionadas.Count;
             int resto = quantidadeTotal % areasSelecionadas.Count;
 
-            var random = new Random();
-
             for (int i = 0; i < areasSelecionadas.Count; i++)
             {
                 var area = areasSelecionadas[i];

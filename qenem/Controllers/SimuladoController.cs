@@ -115,7 +115,7 @@ namespace qenem.Controllers
                 .Where(r => !string.IsNullOrEmpty(r.Resposta))
                 .ToDictionary(r => r.QuestaoId, r => r.Resposta);
 
-            var respostaUsuario = respostasSalvas.ContainsKey(questaoAtual.id) ? respostasSalvas[questaoAtual.id] : null;
+            var respostaUsuario = respostasSalvas.ContainsKey(questaoAtual.UniqueId) ? respostasSalvas[questaoAtual.UniqueId] : null;
 
             //monta objeto pra view
             // TO DO:
@@ -141,22 +141,22 @@ namespace qenem.Controllers
             return View();
         }
 
-        private async Task<List<ListaQuestaoSimulado>> ObterSimuladosUsuario()
+        private async Task<List<Simulado>> ObterSimuladosUsuario()
         {
             var usuario = await _userManager.GetUserAsync(User);
             if (usuario == null)
             {
-                return new List<ListaQuestaoSimulado>(); // Retorna uma lista vazia se o usuário não existir.
+                return new List<Simulado>(); // Retorna uma lista vazia se o usuário não existir.
             }
 
             var userId = usuario.Id;
 
-            var simuladosExistentes = await _context.ListaSimulados
-                .Where(s => s.Simulado.UsuarioId == userId)
+            var simuladosExistentes = await _context.Simulados
+                .Where(s => s.UsuarioId == userId)
                 .ToListAsync();
             if (!simuladosExistentes.Any())
             {
-                return new List<ListaQuestaoSimulado>();
+                return new List<Simulado>();
             }
             return simuladosExistentes;
         }

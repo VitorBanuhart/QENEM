@@ -40,13 +40,13 @@ namespace qenem.Services
         }
         public async Task<List<Question>> ObterQuestoesSimulado(int simuladoId)
         {
-            var questoesIds = _context.ListaSimulados
+            var questoesUniqueIds = _context.ListaSimulados
                 .Where(ls => ls.SimuladoId == simuladoId)
-                .Select(ls => ls.QuestaoId)
+                .Select(ls => ls.UniqueId)
                 .ToList();
 
             var questoes = _questionService.GetAllQuestions()
-                .Where(q => questoesIds.Contains(q.id))
+                .Where(q => questoesUniqueIds.Contains(q.UniqueId))
                 .ToList();
 
             return questoes;
@@ -110,7 +110,7 @@ namespace qenem.Services
         /// <param name="questaoId"></param>
         /// <param name="resposta"></param>
         /// <returns></returns>
-        public async Task<bool> RegistrarResposta(int simuladoId, int questaoId, string resposta)
+        public async Task<bool> RegistrarResposta(int simuladoId, string questaoId, string resposta)
         {
             try
             {
@@ -148,12 +148,12 @@ namespace qenem.Services
         }
 
         #region Métodos auxiliares
-        private async Task<bool> ValidarResposta(int simuladoId, int questaoId, string resposta)
+        private async Task<bool> ValidarResposta(int simuladoId, string questaoId, string resposta)
         {
             try
             {
                 var questoesDoSimulado = await ObterQuestoesSimulado(simuladoId);
-                var questao = questoesDoSimulado.FirstOrDefault(q => q.id == questaoId);
+                var questao = questoesDoSimulado.FirstOrDefault(q => q.UniqueId == questaoId);
 
                 if (questao?.correctAlternative != null)
                 {
@@ -172,25 +172,12 @@ namespace qenem.Services
 
         private async Task VincularQuestoesSimulado(int simuladoId, List<Question> questoes)
         {
-            var seletores = new Dictionary<string, Func<Question, string>>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "ingles", q => q.language },
-                { "espanhol", q => q.language }
-            };
-
             foreach (var questao in questoes)
             {
-                string area;
-                if (!string.IsNullOrEmpty(questao.language) && seletores.ContainsKey(questao.language))
-                    area = seletores[questao.language](questao);
-                else
-                    area = questao.discipline;
-
                 var listaSimulado = new ListaQuestaoSimulado
                 {
                     SimuladoId = simuladoId,
-                    QuestaoId = questao.id,
-                    AreaQuestao = area
+                    UniqueId = questao.UniqueId,
                 };
 
                 _context.ListaSimulados.Add(listaSimulado);
