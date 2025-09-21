@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250920030943_feat Inicio implementacao simulado")]
-    partial class featInicioimplementacaosimulado
+    [Migration("20250920212717_MigrationInicial")]
+    partial class MigrationInicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,17 +317,18 @@ namespace qenem.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AreaQuestao")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Ordem")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuestaoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UniqueId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -350,14 +351,19 @@ namespace qenem.Migrations
                     b.Property<bool?>("EstaCorreta")
                         .HasColumnType("bit");
 
-                    b.Property<int>("QuestaoId")
-                        .HasColumnType("int");
+                    b.Property<string>("QuestaoId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Resposta")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SimuladoId")
+                    b.Property<int>("SimuladoId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -519,9 +525,13 @@ namespace qenem.Migrations
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
                 {
-                    b.HasOne("qenem.Models.Simulado", null)
+                    b.HasOne("qenem.Models.Simulado", "Simulado")
                         .WithMany("Respostas")
-                        .HasForeignKey("SimuladoId");
+                        .HasForeignKey("SimuladoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Simulado");
                 });
 
             modelBuilder.Entity("qenem.Models.Simulado", b =>

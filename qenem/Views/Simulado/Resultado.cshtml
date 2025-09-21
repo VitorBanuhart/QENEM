@@ -1,25 +1,61 @@
-﻿@{
+﻿@model qenem.DTO.SimuladoResultadoDto
+
+@{
     ViewData["Title"] = "Resultados do Simulado";
+
+    string FormatarTempo(TimeSpan? ts)
+    {
+        if (!ts.HasValue) return "--";
+        var t = ts.Value;
+        if (t.TotalHours >= 1) return t.ToString(@"hh\:mm\:ss");
+        return t.ToString(@"mm\:ss") + " min";
+    }
+
+    string BadgeClass(double perc)
+    {
+        if (perc >= 70) return "badge bg-success";
+        if (perc >= 40) return "badge bg-warning text-dark";
+        return "badge bg-danger";
+    }
 }
 
 <div class="text-center">
     <h2 class="mb-4">RESULTADOS</h2>
 
-    <div class="card p-4 mx-auto" style="max-width: 500px;">
-        <h5 class="card-title">Nome do Simulado</h5>
+    <div class="card p-4 mx-auto" style="max-width: 700px;">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h5 class="card-title mb-1">@Model.Nome</h5>
+                <small class="text-muted">Criado em @Model.DataCriacao.ToLocalTime().ToString("g")</small>
+            </div>
+            <div class="text-end">
+                <p class="card-text text-muted mb-1">Tempo total: @FormatarTempo(Model.TempoGasto)</p>
+                <p class="mb-0"><strong>@Model.TotalAcertos</strong> acertos de <strong>@Model.TotalQuestoes</strong></p>
+                <p class="mb-0"><span class="badge bg-primary">@Model.PorcentagemGeral.ToString("0.##") %</span></p>
+            </div>
+        </div>
 
-        <p class="card-text text-muted">Tempo total: 12:58 min</p>
-
-        <hr>
+        <hr />
 
         <div class="text-start mt-3">
-            <p class="fs-5">Linguagens = 7/15 <span class="badge bg-warning text-dark">47%</span></p>
-            <p class="fs-5">Matemática = 10/15 <span class="badge bg-success">67%</span></p>
+            @foreach (var area in Model.ResultadosPorArea)
+            {
+                <div class="mb-2 d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@area.Area</strong>
+                        <div class="small text-muted">@area.QuestoesRespondidas/@area.TotalQuestoes respondidas</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fs-5">@area.Acertos/@area.TotalQuestoes</div>
+                        <span class="@BadgeClass(area.Porcentagem)">@area.Porcentagem.ToString("0.##") %</span>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
     <div class="mt-4">
         <button class="btn btn-outline-secondary">? Ajuda</button>
-        <a href="#" class="btn btn-primary">Gerar mais questões</a>
+        <a asp-controller="Simulado" asp-action="GerarMaisQuestoes" class="btn btn-primary">Gerar mais questões</a>
     </div>
 </div>

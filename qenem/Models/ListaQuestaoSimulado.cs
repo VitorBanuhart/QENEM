@@ -14,13 +14,11 @@ namespace qenem.Models
         public virtual Simulado Simulado { get; set; }
 
         [Required]
-        public int QuestaoId { get; set; }
+        public string UniqueId { get; set; }
 
+        public string AreaQuestao { get; set; }
         // Opcional: ordem da questão no simulado
         public int Ordem { get; set; }
 
-        // Opcional: área da questão para facilitar relatórios
-        [StringLength(50)]
-        public string? AreaQuestao { get; set; }
     }
 }

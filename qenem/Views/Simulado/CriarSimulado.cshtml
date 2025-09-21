@@ -1,6 +1,15 @@
 ﻿@model qenem.Models.ListaQuestaoSimulado
 @{
     ViewData["Title"] = "Criação de Simulado";
+    var areas = new[]
+    {
+        new { Texto = "Ciências Humanas", Valor = "ciencias-humanas" },
+        new { Texto = "Ciências da Natureza", Valor = "ciencias-natureza" },
+        new { Texto = "Linguagens", Valor = "linguagens" },
+        new { Texto = "Matemática", Valor = "matematica" },
+        new { Texto = "Espanhol", Valor = "espanhol" },
+        new { Texto = "Inglês", Valor = "ingles" }
+    };
 }
 
 <h4 class="mb-4">Tela Criação Simulado</h4>
@@ -11,12 +20,16 @@
         <div class="card-body">
             <div class="mb-4">
                 <h5>Áreas de interesse</h5>
-                @foreach (var area in new[] { "Matemática", "Ciências Humanas", "Ciências Natureza", "Linguagens", "Espanhol", "Inglês" })
+                @foreach (var area in areas)
                 {
-                    var idCheck = "check" + area.Replace(" ", "");
+                    var idCheck = "check" + area.Valor;
                     <div class="form-check">
-                        <input class="form-check-input area-interesse" type="checkbox" value="@area" id="@idCheck" name="AreasSelecionadas" />
-                        <label class="form-check-label" for="@idCheck">@area</label>
+                        <input class="form-check-input area-interesse"
+                               type="checkbox"
+                               value="@area.Valor"
+                               id="@idCheck"
+                               name="AreasSelecionadas" />
+                        <label class="form-check-label" for="@idCheck">@area.Texto</label>
                     </div>
                 }
             </div>
@@ -98,52 +111,48 @@
                 modalAnos.hide();
             });
 
+            const anosDisponiveis = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
 
             btnConfirmar.addEventListener('click', async function(e) {
-            e.preventDefault();
+                e.preventDefault();
 
-            debugger;
-
-            const simuladoData = {
-                NomeSimulado: nomeSimuladoInput.value.trim(),
-                NumeroQuestoes: parseInt(numeroQuestoesInput.value, 10),
-                   // separando áreas (Matemática, Humanas, Natureza...)
-                AreasSelecionadas: Array.from(areasCheckboxes)
-                    .filter(cb => cb.checked && !["Espanhol", "Inglês"].includes(cb.value))
-                    .map(cb => cb.value),
-
-                // separando linguagens (Espanhol, Inglês)
-                LinguagensSelecionadas: Array.from(areasCheckboxes)
-                    .filter(cb => cb.checked && ["Espanhol", "Inglês"].includes(cb.value))
-                    .map(cb => cb.value),
-                AnosSelecionados: anosSelecionadosInput.value
-                    ? anosSelecionadosInput.value.split(',').map(a => parseInt(a.trim(), 10))
-                    : []
-            };
-
-            try {
-                const response = await fetch('@Url.Action("CriarSimulado", "Simulado")', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(simuladoData)
-                });
+                const todosSelecionado = radioAnosTodos.checked;
 
 
-                        const result = await response.json();
-                        if (result && result.success && result.simulado && result.simulado.id) {
-                            window.location.href = `/Simulado/RealizaSimulado?id=${result.simulado.id}`;
-                        } else {
-                            Swal.fire('Erro!', result?.message || 'Não foi possível criar o simulado.', 'error');
-                        }
+                const simuladoData = {
+                    NomeSimulado: nomeSimuladoInput.value.trim(),
+                    NumeroQuestoes: parseInt(numeroQuestoesInput.value, 10),
+                    AreasSelecionadas: Array.from(areasCheckboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value),
+                    AnosSelecionados: todosSelecionado //todos > manda array geral / especifico > monta array conforme preenchimento
+                        ? anosDisponiveis
+                        : (anosSelecionadosInput.value
+                            ? anosSelecionadosInput.value.split(',').map(a => parseInt(a.trim(), 10))
+                            : [])
+                };
 
-            } catch (err) {
-                console.error('Erro ao criar simulado:', err);
-                Swal.fire('Erro!', 'Não foi possível criar o simulado.', 'error');
-            }
+                try {
+                    const response = await fetch('@Url.Action("CriarSimulado", "Simulado")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(simuladoData)
+                    });
 
-        });
 
+                    const result = await response.json();
+                    if (result && result.success && result.simulado && result.simulado.id) {
+                        window.location.href = `/Simulado/RealizaSimulado?id=${result.simulado.id}`;
+                    } else {
+                        Swal.fire('Erro!', result?.message || 'Não foi possível criar o simulado.', 'error');
+                    }
 
+                } catch (err) {
+                    console.error('Erro ao criar simulado:', err);
+                    Swal.fire('Erro!', 'Não foi possível criar o simulado.', 'error');
+                }
+
+            });
         });
     </script>
 }
