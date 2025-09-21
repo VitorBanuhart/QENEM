@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using qenem;
 using qenem.Data;
+using qenem.Interfaces;
 using qenem.Models; 
 using qenem.Services;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var jsonBasePath = Path.Combine(builder.Environment.ContentRootPath, "Data", "Questions");
 
 builder.Services.AddSingleton<JsonDataService>(sp =>
 {
@@ -20,6 +24,7 @@ builder.Services.AddSingleton<QuestionService>(sp =>
     var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
     return new QuestionService(repo, dataPath);
 });
+builder.Services.AddScoped<SimuladoService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
@@ -33,6 +38,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("MailerSend"));
+builder.Services.AddTransient<IEmailService, MailerSendEmailService>();
 
 var app = builder.Build();
 

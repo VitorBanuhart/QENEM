@@ -1,0 +1,259 @@
+﻿@model qenem.ViewModels.SimuladoViewModel
+@using Markdig
+@{
+    ViewData["Title"] = "Realizando Simulado";
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .progress-indicator {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #0d6efd;
+        }
+
+            .progress-dot.active {
+                background-color: #0d6efd;
+            }
+
+            .progress-dot.answered {
+                background-color: #d1e7dd;
+                border-color: #0f5132;
+            }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+            .option-label:hover {
+                background-color: #f0f0f0;
+            }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+            input[type="radio"]:checked + .option-label {
+                border-color: #0d6efd;
+                background-color: #cfe2ff;
+            }
+
+        .option-label span, .option-label p {
+            margin: 0;
+        }
+
+        .option-label img {
+            max-height: 40px;
+        }
+
+        .option-label .option-text {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container my-5">
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span id="timer" class="badge bg-primary fs-5">00:00:00</span>
+                <div>
+                    <h5>@Model.SimuladoNome</h5>
+                    <small class="text-muted">@Model.QuestaoAtual.discipline - (Q. @(Model.QuestaoAtualIndex + 1)/@Model.TotalQuestoes)</small>
+                </div>
+            </div>
+
+            <div class="progress-indicator my-4 justify-content-center">
+                @for (int i = 0; i < Model.TotalQuestoes; i++)
+                {
+                    var dotClass = "progress-dot";
+                    if (i == Model.QuestaoAtualIndex) { dotClass += " active"; }
+
+                    <button type="button" class="@dotClass btn btn-sm" style="position: relative;" onclick="goToQuestion(@i)">
+                        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: black;">
+                            @(i + 1)
+                        </span>
+                    </button>
+                }
+            </div>
+
+
+            <h4 class="my-4">QUESTÃO @(Model.QuestaoAtualIndex + 1)</h4>
+            <p>@Html.Raw(Markdown.ToHtml(Model.QuestaoAtual.context ?? ""))</p>
+            @if (!string.IsNullOrEmpty(Model.QuestaoAtual.alternativesIntroduction))
+            {
+                <p class="fw-bold">@Html.Raw(Markdown.ToHtml(@Model.QuestaoAtual.alternativesIntroduction ?? ""))</p>
+            }
+
+            <form id="form-resposta">
+                <input type="hidden" id="SimuladoId" value="@Model.SimuladoId" />
+                <input type="hidden" id="QuestaoId" value="@Model.QuestaoAtual.UniqueId" />
+
+                <div class="options mt-4">
+                    @foreach (var alt in Model.QuestaoAtual.alternatives)
+                    {
+                        var isChecked = Model.RespostaUsuario == alt.letter;
+                        <input type="radio" name="Resposta" id="opt@(alt.letter)" value="@alt.letter" checked="@isChecked" />
+                        <label for="opt@(alt.letter)" class="option-label">
+                            <span class="fw-bold me-2">@alt.letter)</span>
+                            @if (!string.IsNullOrEmpty(alt.file))
+                            {
+                                <img src="@alt.file" alt="Alternativa @alt.letter" class="ms-2" />
+                            }
+                            <span class="option-text ms-2">@Html.Raw(Markdown.ToHtml(@alt.text ?? ""))</span>
+                        </label>
+                    }
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mt-3">
+                    @if (Model.QuestaoAtualIndex > 0)
+                    {
+                        <a asp-action="RealizaSimulado" asp-route-id="@Model.SimuladoId" asp-route-questaoIndex="@(Model.QuestaoAtualIndex - 1)" class="btn btn-secondary">Questão Anterior</a>
+                    }
+                    else
+                    {
+                        <span></span>
+                    }
+                    @if(Model.QuestaoAtualIndex >= Model.TotalQuestoes - 1)
+                    {
+                        <a asp-action="Resultado" asp-route-Id="@Model.SimuladoId" class="btn btn-success">Finalizar Simulado</a>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-primary">Próxima Questão</button>
+                    }
+                </div>
+            </form>
+
+            <div class="text-center my-4">
+                <button type="button" class="btn btn-success" onclick="verificarResposta(@Model.QuestaoAtualIndex)">
+                    Verificar Resposta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('form-resposta').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const simuladoId = document.getElementById('SimuladoId').value;
+            const questaoId = document.getElementById('QuestaoId').value;
+            const resposta = document.querySelector('input[name="Resposta"]:checked')?.value;
+            if (!resposta) { Swal.fire('Selecione uma alternativa antes de continuar.'); return; }
+
+            const payload = { SimuladoId: simuladoId, QuestaoId: questaoId, Resposta: resposta };
+
+            try {
+                const response = await fetch('/Simulado/RegistrarResposta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const proximaIndex = @(Model.QuestaoAtualIndex + 1);
+                    const total = @Model.TotalQuestoes;
+
+                    if (proximaIndex >= total) {
+                        window.location.href = `/Simulado/Resultado?simuladoId=${simuladoId}`;
+                    } else {
+                        window.location.href = `/Simulado/RealizaSimulado?id=${simuladoId}&questaoIndex=${proximaIndex}`;
+                    }
+                } else {
+                    Swal.fire('Erro!', result.message || 'Não foi possível registrar a resposta.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Erro!', 'Falha ao enviar resposta.', 'error');
+            }
+        });
+
+                function goToQuestion(index) {
+            window.location.href = `/Simulado/RealizaSimulado?id=${simuladoId}&questaoIndex=${index}`;
+        }
+
+        function verificarResposta(index) {
+            const selecionada = document.querySelector('input[name="Resposta"]:checked');
+            if (!selecionada) { Swal.fire("Atenção", "Selecione uma alternativa antes de verificar.", "warning"); return; }
+
+            const gabarito = {
+                @foreach (var alt in Model.QuestaoAtual.alternatives)
+                {
+                        @: "@alt.letter": @alt.isCorrect.ToString().ToLower(),
+                }
+            };
+
+            const letraSelecionada = selecionada.value;
+            const acertou = gabarito[letraSelecionada];
+
+            if (acertou) {
+                Swal.fire("Parabéns!", "Resposta correta!", "success");
+            } else {
+                const correta = Object.keys(gabarito).find(l => gabarito[l]);
+                Swal.fire("Incorreto", "A resposta correta é: " + correta, "error");
+            }
+        }
+
+        let simuladoId = @Model.SimuladoId;
+        let elapsedSeconds = 0;
+        const timerEl = document.getElementById("timer");
+
+        function formatTime(seconds) {
+            let h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+            let m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+            let s = (seconds % 60).toString().padStart(2, "0");
+            return `${h}:${m}:${s}`;
+        }
+
+        async function loadTempo() {
+            try {
+                const response = await fetch(`/Simulado/GetTempo/${simuladoId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    elapsedSeconds = data.seconds || 0;
+                    timerEl.textContent = formatTime(elapsedSeconds);
+                }
+            } catch (e) { console.error("Erro ao carregar tempo:", e); }
+        }
+
+        async function saveTempo() {
+            try {
+                await fetch(`/Simulado/SetTempo/${simuladoId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ seconds: elapsedSeconds })
+                });
+            } catch (e) { console.error("Erro ao salvar tempo:", e); }
+        }
+
+        function startTimer() {
+            setInterval(() => { elapsedSeconds++; timerEl.textContent = formatTime(elapsedSeconds); }, 1000);
+            setInterval(saveTempo, 10000);
+        }
+
+        window.addEventListener("beforeunload", saveTempo);
+        loadTempo().then(startTimer);
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 ﻿@model List<qenem.Models.Question>
 @using Markdig
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Questões ENEM";
@@ -62,7 +63,7 @@
                     </div>
 
                     <div class="mt-3">
-                        <button class="btn btn-warning" data-id="@questao.UniqueId" onclick="abrirModalAdicionarLista('@questao.UniqueId')">
+                        <button class="btn btn-warning" data-id="@questao.UniqueId" onclick='abrirModalAdicionarLista(@Html.Raw(JsonSerializer.Serialize(questao.UniqueId)))'>
                             <i class="fas fa-plus"></i> Adicionar à Lista
                         </button>
                     </div>

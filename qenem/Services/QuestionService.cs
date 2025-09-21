@@ -49,6 +49,8 @@ namespace qenem.Services
             return questions;
         }
 
+        public List<Question> GetAllQuestions() => LoadQuestions();
+
         /// <summary>
         /// Retorna 10 questões aleatórias de acordo com a disciplina escolhida.
         /// </summary>
@@ -119,6 +121,41 @@ namespace qenem.Services
             _respostasPorDia[userId] += result.Count;
 
             return result;
+        }
+
+        /// <summary>
+        /// obtém questões distribuídas entre as áreas selecionadas
+        /// </summary>
+        /// <param name="areasSelecionadas"></param>
+        /// <param name="anosSelecionados"></param>
+        /// <param name="quantidadeTotal"></param>
+        /// <returns></returns>
+        public List<Question> GetDistributedQuestions(List<string> areasSelecionadas, List<int> anosSelecionados, int quantidadeTotal)
+        {
+            var todasQuestoes = GetAllQuestions();
+            var resultado = new List<Question>();
+            int qtdPorArea = quantidadeTotal / areasSelecionadas.Count;
+            int resto = quantidadeTotal % areasSelecionadas.Count;
+
+            for (int i = 0; i < areasSelecionadas.Count; i++)
+            {
+                var area = areasSelecionadas[i];
+                int qtd = qtdPorArea + (i < resto ? 1 : 0); // distribui o resto
+
+                //varia a prop de busca se é linguagem ou disciplina para selecionar o campo correto na questao
+                Func<Question, string> seletor = q =>
+                    (area == "ingles" || area == "espanhol") ? q.language : q.discipline;
+
+                var questoesArea = todasQuestoes
+                    .Where(q => seletor(q) == area && anosSelecionados.Contains(q.year))
+                    .OrderBy(_ => Guid.NewGuid())
+                    .Take(qtd)
+                    .ToList();
+
+                resultado.AddRange(questoesArea);
+            }
+
+            return resultado;
         }
     }
 }
