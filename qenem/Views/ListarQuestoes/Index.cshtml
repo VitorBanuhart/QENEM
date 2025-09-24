@@ -1,0 +1,307 @@
+﻿@model List<qenem.Models.Question>
+@using Markdig
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Questões ENEM";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-2 d-flex flex-column align-items-start" id="botoes-navegacao">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <button class="btn btn-outline-primary rounded-circle mb-2"
+                        style="width: 45px; height: 45px;"
+                        onclick="mostrarQuestao(@i)">
+                    @(i + 1)
+                </button>
+            }
+        </div>
+
+        <div class="col-10" id="questoes-container">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var questao = Model[i];
+
+                <div id="questao-@i" class="questao" style="display:@(i == 0 ? "block" : "none")" data-correcta="@questao.correctAlternative">
+
+                    <h4>Questão @(i + 1): @questao.title (@questao.year)</h4>
+                    <p><strong>Disciplina:</strong> @questao.discipline</p>
+                    @if (!string.IsNullOrEmpty(questao.language))
+                    {
+                        <p><strong>Língua:</strong> @questao.language</p>
+                    }
+
+                    <div>@Html.Raw(Markdown.ToHtml(questao.context ?? ""))</div>
+                    <div>@Html.Raw(Markdown.ToHtml(questao.alternativesIntroduction ?? ""))</div>
+
+                    <div class="list-group mt-3">
+                        @foreach (var alt in questao.alternatives)
+                        {
+                            <button class="list-group-item list-group-item-action alternativa"
+                                    data-letra="@alt.letter"
+                                    onclick="selecionarAlternativa(this, @i)">
+                                <strong>@alt.letter)</strong> @alt.text
+                            </button>
+                        }
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="btn btn-info" onclick="anterior(@i)">Anterior</button>
+
+                        <button class="btn btn-success" onclick="verificarResposta(@i)">Verificar</button>
+
+                        @if (i == Model.Count - 1)
+                        {
+                            <button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar Mais</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-info" onclick="proxima(@i)">Próxima</button>
+                        }
+                    </div>
+
+                    <div class="mt-3">
+                        <button class="btn btn-warning" data-id="@questao.UniqueId" onclick='abrirModalAdicionarLista(@Html.Raw(JsonSerializer.Serialize(questao.UniqueId)))'>
+                            <i class="fas fa-plus"></i> Adicionar à Lista
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Variável global para saber o total de questões na tela
+        let TOTAL = @Model.Count;
+
+        // =============================================================
+        // SEÇÃO 1: NAVEGAÇÃO E INTERAÇÃO BÁSICA DAS QUESTÕES
+        // =============================================================
+
+        function abrirModalAdicionarListaFromButton(button) {
+            const questaoId = button.getAttribute('data-id');
+            console.log("Enviando:", { listaId, questaoId });
+
+            abrirModalAdicionarLista(questaoId);
+        }
+
+        function mostrarQuestao(index) {
+            document.querySelectorAll('.questao').forEach(q => q.style.display = 'none');
+            const div = document.getElementById('questao-' + index);
+            if (div) div.style.display = 'block';
+        }
+
+        function selecionarAlternativa(btn, questaoIndex) {
+            const alternativas = document.querySelectorAll('#questao-' + questaoIndex + ' .alternativa');
+            alternativas.forEach(a => a.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function verificarResposta(index) {
+            const questaoDiv = document.getElementById('questao-' + index);
+            if (!questaoDiv) return;
+            const correta = questaoDiv.dataset.correcta;
+            const selecionada = questaoDiv.querySelector('.alternativa.active');
+
+            if (!selecionada) {
+                Swal.fire("Atenção", "Selecione uma alternativa antes de verificar.", "warning");
+                return;
+            }
+
+            const letraSelecionada = selecionada.dataset.letra;
+            if (letraSelecionada === correta) {
+                Swal.fire("Parabéns!", "Resposta correta!", "success");
+            } else {
+                Swal.fire("Incorreto", "A resposta correta é: " + correta, "error");
+            }
+        }
+
+        function proxima(index) {
+            if (index + 1 < TOTAL) mostrarQuestao(index + 1);
+        }
+
+        function anterior(index) {
+            if (index - 1 >= 0) mostrarQuestao(index - 1);
+        }
+
+        // =============================================================
+        // SEÇÃO 2: CARREGAMENTO DINÂMICO DE NOVAS QUESTÕES
+        // =============================================================
+
+        function gerarMaisQuestoes() {
+            Swal.fire({ title: 'Buscando novas questões...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            fetch('/ListarQuestoes/GerarQuestoesMock', { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) throw new Error("Erro na rede.");
+                    return response.json();
+                })
+                .then(novasQuestoes => {
+                    if (novasQuestoes && novasQuestoes.length > 0) {
+                        atualizarQuestoes(novasQuestoes);
+                        Swal.close();
+                    } else {
+                        Swal.fire('Aviso', 'Não foi possível carregar novas questões.', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro em gerarMaisQuestoes:", error);
+                    Swal.fire('Erro', 'Ocorreu um problema ao buscar as questões.', 'error');
+                });
+        }
+
+        function escapeJs(str) {
+            if (typeof str !== 'string' || !str) return '';
+            return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\${/g, '\\${');
+        }
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+
+        function atualizarQuestoes(questoes) {
+            const containerBotoes = document.getElementById('botoes-navegacao');
+            const containerQuestoes = document.getElementById('questoes-container');
+            if (!containerBotoes || !containerQuestoes) return;
+
+            // Atualiza os botões de navegação
+            containerBotoes.innerHTML = '';
+            questoes.forEach((q, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-primary rounded-circle mb-2';
+                btn.style.width = '45px';
+                btn.style.height = '45px';
+                btn.textContent = i + 1;
+                btn.onclick = () => mostrarQuestao(i);
+                containerBotoes.appendChild(btn);
+            });
+
+            // Atualiza as questões
+            containerQuestoes.innerHTML = '';
+            questoes.forEach((questao, i) => {
+                const divQuestao = document.createElement('div');
+                divQuestao.id = `questao-${i}`;
+                divQuestao.className = 'questao';
+                divQuestao.style.display = i === 0 ? 'block' : 'none';
+                divQuestao.dataset.correcta = questao.correctAlternative;
+
+                // Conteúdo da questão
+                const html = `
+                    <h4>Questão ${i + 1}: ${escapeHtml(questao.title)} (${questao.year})</h4>
+                    <p><strong>Disciplina:</strong> ${escapeHtml(questao.discipline)}</p>
+                    ${questao.language ? `<p><strong>Língua:</strong> ${escapeHtml(questao.language)}</p>` : ''}
+                    <div>${escapeHtml(questao.context)}</div>
+                    <div>${escapeHtml(questao.alternativesIntroduction)}</div>
+                    <div class="list-group mt-3">
+                        ${Array.isArray(questao.alternatives) ? questao.alternatives.map(alt => `
+                            <button class="list-group-item list-group-item-action alternativa"
+                                    data-letra="${alt.letter}"
+                                    onclick="selecionarAlternativa(this, ${i})">
+                                <strong>${alt.letter})</strong> ${escapeHtml(alt.text)}
+                            </button>
+                        `).join('') : ''}
+                    </div>
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="btn btn-info" onclick="anterior(${i})">Anterior</button>
+                        <button class="btn btn-success" onclick="verificarResposta(${i})">Verificar</button>
+                        ${i === questoes.length - 1
+                            ? `<button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar Mais</button>`
+                            : `<button class="btn btn-info" onclick="proxima(${i})">Próxima</button>`}
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-warning" onclick='abrirModalAdicionarLista(${JSON.stringify(questao.uniqueId)})'>
+                            <i class="fas fa-plus"></i> Adicionar à Lista
+                        </button>
+                    </div>
+                `;
+
+                divQuestao.innerHTML = html;
+                containerQuestoes.appendChild(divQuestao);
+            });
+
+            window.TOTAL = questoes.length;
+        }
+
+
+        // =============================================================
+        // SEÇÃO 3: FUNCIONALIDADE "ADICIONAR À LISTA"
+        // =============================================================
+
+        async function abrirModalAdicionarLista(questaoId) {
+            try {
+                Swal.fire({ title: 'Buscando suas listas...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const response = await fetch('@Url.Action("ObterListasDoUsuario", "Lista")');
+                if (!response.ok) throw new Error('Falha na comunicação com o servidor.');
+                const listas = await response.json();
+
+                if (listas && listas.length > 0) {
+                    mostrarModalDeSelecao(listas, questaoId);
+                } else {
+                    mostrarModalCriarLista();
+                }
+            } catch (error) {
+                console.error("Erro ao buscar listas:", error);
+                Swal.fire('Erro!', 'Não foi possível carregar suas listas.', 'error');
+            }
+        }
+
+        async function mostrarModalDeSelecao(listas, questaoId) {
+            const inputOptions = {};
+            listas.forEach(lista => { inputOptions[lista.id] = lista.nome; });
+
+            const { value: listaId } = await Swal.fire({
+                title: 'Adicionar questão à lista', input: 'select', inputOptions: inputOptions,
+                inputPlaceholder: 'Selecione uma de suas listas',
+                showCancelButton: true, confirmButtonText: 'Adicionar', cancelButtonText: 'Cancelar'
+            });
+
+            if (listaId) {
+                adicionarQuestaoNaLista(parseInt(listaId), questaoId);
+            }
+        }
+
+        function mostrarModalCriarLista() {
+            Swal.fire({
+                title: 'Nenhuma lista encontrada',
+                text: "Você precisa ter ao menos uma lista para adicionar questões.",
+                icon: 'info', showCancelButton: true, confirmButtonText: 'Criar uma lista agora', cancelButtonText: 'Fechar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '@Url.Action("Index", "Lista")';
+                }
+            });
+        }
+
+        async function adicionarQuestaoNaLista(listaId, questaoId) {
+            try {
+                Swal.fire({ title: 'Adicionando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const response = await fetch('@Url.Action("AdicionarQuestao", "Lista")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ListaId: listaId, QuestaoId: questaoId })
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Swal.fire('Sucesso!', result.message, 'success');
+                } else {
+                    Swal.fire('Atenção!', result.message, 'warning');
+                }
+            } catch (error) {
+                console.error("Erro ao adicionar questão:", error);
+                Swal.fire('Erro!', 'Ocorreu um erro inesperado.', 'error');
+            }
+        }
+    </script>
+}

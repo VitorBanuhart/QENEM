@@ -1,0 +1,9 @@
+public enum EnumAreaInteresse
+{
+    LINGUAGENS,
+    CIENCIAS_NATUREZA,
+    MATEMATICA,
+    CIENCIAS_HUMANAS,
+    INGLES,
+    ESPANHOL
+}

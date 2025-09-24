@@ -1,0 +1,94 @@
+﻿@using System.Text.Json
+@using Markdig
+@model List<qenem.Models.Question>
+@{
+    ViewData["Title"] = "Questões da Lista";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>@ViewBag.NomeLista</h3>
+        <a href="@Url.Action("Index", "Lista")" class="btn btn-secondary">Retornar</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <p>Nenhuma questão nesta lista.</p>
+    }
+    else
+    {
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 15px;">
+            @foreach (var questao in Model)
+            {
+                <div class="questao mb-4" id="questao-@questao.UniqueId">
+                    <h5>@questao.title (@questao.year)</h5>
+                    <p><strong>Disciplina:</strong> @questao.discipline</p>
+                    @if (!string.IsNullOrEmpty(questao.language))
+                    {
+                        <p><strong>Língua:</strong> @questao.language</p>
+                    }
+                    <p>@Html.Raw(Markdown.ToHtml(questao.context ?? ""))</p>
+                    <p>@Html.Raw(Markdown.ToHtml(questao.alternativesIntroduction ?? ""))</p>
+
+                    <div class="list-group">
+                        @foreach (var alt in questao.alternatives)
+                        {
+                            <button class="list-group-item list-group-item-action alternativa"
+                                    data-letra="@alt.letter">
+                                <strong>@alt.letter)</strong> @alt.text
+                            </button>
+                        }
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="btn btn-warning" onclick='removerQuestao(@Html.Raw(JsonSerializer.Serialize(questao.UniqueId)), @ViewBag.ListaId)'>
+                            <i class="fas fa-trash-alt"></i> Remover da Lista
+                        </button>
+                    </div>
+                    <hr />
+                </div>
+            }
+        </div>
+        <a class="btn btn-danger" asp-controller="Lista" asp-action="BaixarPDF" asp-route-listaId="@ViewBag.ListaId">
+            Baixar em PDF
+        </a>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        async function removerQuestao(questaoId, listaId) {
+            const confirm = await Swal.fire({
+                title: "Remover questão?",
+                text: "Essa questão será removida da lista.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sim, remover",
+                cancelButtonText: "Cancelar"
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const response = await fetch(`/Lista/RemoverQuestaoDaLista`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ListaId: listaId, QuestaoId: questaoId })
+                });
+
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    document.getElementById("questao-" + questaoId).remove();
+                    Swal.fire("Removida!", "A questão foi removida da lista.", "success");
+                } else {
+                    Swal.fire("Erro", result.message || "Falha ao remover questão.", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire("Erro", "Problema na requisição.", "error");
+            }
+        }
+        
+    </script>
+}
