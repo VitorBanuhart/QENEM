@@ -51,8 +51,10 @@
                         </div>
 
                         <div class="mt-3 d-flex justify-content-between">
-                            <button class="btn btn-info" onclick="anterior(@i)">Anterior</button>
 
+
+                            <button class="btn btn-info" onclick="anterior(@i)" @(i == 0 ? "disabled" : "")>Anterior</button>
+                            
                             <button class="btn btn-success" onclick="verificarResposta(@i)">Verificar</button>
 
                             @if (i == Model.Count - 1)
