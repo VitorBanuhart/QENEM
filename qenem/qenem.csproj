@@ -21,7 +21,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
     <PackageReference Include="QuestPDF" Version="2025.7.1" />
-    <PackageReference Include="Unipluss.Sign.Client" Version="1.0.2876" />
   </ItemGroup>
 
   <ItemGroup>
