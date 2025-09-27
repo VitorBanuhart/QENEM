@@ -66,19 +66,25 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-
                     <form id="formContato" asp-controller="Ajuda" asp-action="Enviar" method="post">
                         @Html.AntiForgeryToken()
 
-                        <div id="resultadoModal" class="mb-3"></div>
+                        <div id="resultadoModal"></div>
 
-                        <div class="mb-3">
-                            <label for="campoMensagemTxt" class="form-label">Sua Mensagem</label>
-                            <textarea id="campoMensagem" name="Mensagem" class="form-control" rows="5" placeholder="Digite sua mensagem aqui..."></textarea>
-                            <span id="validacaoMensagem" class="text-danger"></span>
+                        <div id="form-fields-container">
+                            <div class="mb-3">
+                                <label for="campoEmail" class="form-label">Seu e-mail para contato</label>
+                                <input type="email" id="campoEmail" name="Email" class="form-control" placeholder="seunome@example.com" />
+                                <span id="validacaoEmail" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="campoMensagem" class="form-label">Sua Mensagem</label>
+                                <textarea id="campoMensagem" name="Mensagem" class="form-control" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                                <span id="validacaoMensagem" class="text-danger"></span>
+                            </div>
                         </div>
                     </form>
-
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>

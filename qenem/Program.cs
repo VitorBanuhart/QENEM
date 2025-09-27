@@ -24,12 +24,13 @@ builder.Services.AddSingleton<QuestionService>(sp =>
     var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
     return new QuestionService(repo, dataPath);
 });
+builder.Services.AddScoped<IEmailSender, MailerSendEmailService>();
+builder.Services.AddScoped<IEmailService, MailerSendEmailService>();
 builder.Services.AddScoped<SimuladoService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, MailerSendEmailService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;

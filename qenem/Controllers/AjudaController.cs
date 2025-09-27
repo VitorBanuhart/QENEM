@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using qenem.Interfaces;
 using qenem.ViewModels;
+using System.Net;
+using Microsoft.Extensions.Logging; // 1. Adicione este using
 
 namespace qenem.Controllers
 {
@@ -8,67 +10,61 @@ namespace qenem.Controllers
     {
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AjudaController> _logger; // 2. Adicione o campo para o logger
 
-        public AjudaController(IEmailService emailService, IConfiguration configuration)
+        // 3. Injete o ILogger no construtor
+        public AjudaController(IEmailService emailService, IConfiguration configuration, ILogger<AjudaController> logger)
         {
             _emailService = emailService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Enviar([FromForm] EnviarEmailViewModel model)
         {
-            // 1. Valida o modelo
             if (!ModelState.IsValid)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Por favor, preencha todos os campos obrigatórios."
-                });
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new { success = false, message = string.Join(" ", errors) });
             }
 
             try
             {
-                // 2. Pega o e-mail do administrador (destinatário) configurado no appsettings
                 var emailDestino = _configuration.GetValue<string>("MailerSend:SenderEmail");
                 if (string.IsNullOrWhiteSpace(emailDestino))
                 {
-                    return StatusCode(500, new
+                    _logger.LogError("A chave 'MailerSend:SenderEmail' não foi encontrada ou está vazia no appsettings.json.");
+                    return StatusCode((int)HttpStatusCode.InternalServerError, new
                     {
                         success = false,
-                        message = "Configuração de e-mail do destinatário não encontrada. Contate o administrador."
+                        message = "Erro de configuração do servidor. Contate o administrador."
                     });
                 }
 
-                var assunto = "Nova Mensagem do Site";
-
-                // 3. Corpo HTML do e-mail
+                var assunto = "Nova Mensagem de Ajuda do Site";
                 var corpoHtml = $@"
                     <h3>Nova mensagem recebida:</h3>
-                    <ul>
-                    </ul>
+                    <p><strong>Remetente:</strong> {model.Email}</p><hr>
                     <p><strong>Mensagem:</strong></p>
-                    <div style='padding: 15px; border: 1px solid #ccc; background-color: #f9f9f9;'>
-                        {model.Mensagem}
-                    </div>";
+                    <div style='padding:15px; border:1px solid #ccc; background-color:#f9f9f9;'><p>{model.Mensagem}</p></div>";
 
-                // 4. Envia o e-mail usando o serviço
                 await _emailService.SendEmailAsync("vitorbanuhart123@gmail.com", assunto, corpoHtml);
 
-                // 5. Retorno de sucesso
-                return Ok(new
-                {
-                    success = true,
-                    message = "Sua mensagem foi enviada com sucesso. Obrigado pelo contato!"
-                });
+                return Ok(new { success = true, message = "Sua mensagem foi enviada com sucesso!" });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new
+                // 4. LOG DO ERRO! Esta é a parte mais importante.
+                // O erro detalhado aparecerá no console do seu servidor.
+                _logger.LogError(ex, "Falha crítica ao tentar enviar e-mail pelo formulário de ajuda.");
+
+                // 5. Retorna uma mensagem de erro mais clara
+                return StatusCode((int)HttpStatusCode.InternalServerError, new
                 {
                     success = false,
-                    message = "Ocorreu um erro ao enviar a mensagem. Tente novamente mais tarde."
+                    message = "Ocorreu um erro ao conectar-se ao serviço de e-mail. Por favor, tente novamente mais tarde."
                 });
             }
         }
