@@ -285,19 +285,16 @@ namespace qenem.Migrations
 
             modelBuilder.Entity("qenem.Models.ListaQuestao", b =>
                 {
-<<<<<<< HEAD
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
                         .HasColumnType("nvarchar(450)");
-=======
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
->>>>>>> d9f718a6df21381a958e452ae16b0d98f0049188
 
                     b.Property<int>("ListaId")
                         .HasColumnType("int");
@@ -441,7 +438,6 @@ namespace qenem.Migrations
 
                     b.HasIndex("Id_Usuario");
 
-<<<<<<< HEAD
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
 
@@ -462,9 +458,8 @@ namespace qenem.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-=======
+
                     b.ToTable("UsuarioAreas");
->>>>>>> d9f718a6df21381a958e452ae16b0d98f0049188
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
