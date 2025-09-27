@@ -3,6 +3,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using qenem.Models;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using System.Linq;
 
 namespace qenem.Areas.Identity.Pages.Account.Manage
 {
@@ -17,45 +20,42 @@ namespace qenem.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailSender _emailSender;
 
         public IndexModel(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string Username { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [TempData]
         public string StatusMessage { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // Lista de roles do usuário (exibimos apenas; não modificamos nada aqui)
+        public IList<string> Roles { get; set; }
+
+        public bool IsEmailConfirmed { get; set; }
+
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            [Required]
+            [Display(Name = "Username")]
+            public string Username { get; set; }
+
+            [Required]
+            [EmailAddress]
+            [Display(Name = "Email")]
+            public string Email { get; set; }
+
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
@@ -63,14 +63,20 @@ namespace qenem.Areas.Identity.Pages.Account.Manage
 
         private async Task LoadAsync(ApplicationUser user)
         {
-            var userName = await _userManager.GetUserNameAsync(user);
+            Username = await _userManager.GetUserNameAsync(user);
+            var email = await _userManager.GetEmailAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
-            Username = userName;
+            // recupera roles do usuário (não altera nada — apenas exibe)
+            Roles = (await _userManager.GetRolesAsync(user)) ?? new List<string>();
+
+            IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                Username = Username,
+                Email = email,
+                PhoneNumber = phoneNumber,
             };
         }
 
@@ -79,19 +85,20 @@ namespace qenem.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Não foi possível carregar o usuário com ID '{_userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
             return Page();
         }
 
+        // Atualiza perfil (username, email, phone, campos customizados)
         public async Task<IActionResult> OnPostAsync()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Não foi possível carregar o usuário com ID '{_userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -100,19 +107,103 @@ namespace qenem.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
+            // USERNAME
+            var currentUserName = await _userManager.GetUserNameAsync(user);
+            if (Input.Username != currentUserName)
+            {
+                var setUserNameResult = await _userManager.SetUserNameAsync(user, Input.Username);
+                if (!setUserNameResult.Succeeded)
+                {
+                    foreach (var e in setUserNameResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, e.Description);
+                    }
+                    await LoadAsync(user);
+                    return Page();
+                }
+            }
+
+            // EMAIL
+            var currentEmail = await _userManager.GetEmailAsync(user);
+            if (Input.Email != currentEmail)
+            {
+                var setEmailResult = await _userManager.SetEmailAsync(user, Input.Email);
+                if (!setEmailResult.Succeeded)
+                {
+                    foreach (var e in setEmailResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, e.Description);
+                    }
+                    await LoadAsync(user);
+                    return Page();
+                }
+            }
+
+            // PHONE
+            var currentPhone = await _userManager.GetPhoneNumberAsync(user);
+            if (Input.PhoneNumber != currentPhone)
             {
                 var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
                 if (!setPhoneResult.Succeeded)
                 {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
-                    return RedirectToPage();
+                    ModelState.AddModelError(string.Empty, "Erro ao atualizar o telefone.");
+                    await LoadAsync(user);
+                    return Page();
                 }
             }
 
+            // CAMPOS CUSTOMIZADOS: FirstName / LastName (se existirem na sua ApplicationUser)
+            var changed = false;
+
+            if (changed)
+            {
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    foreach (var e in updateResult.Errors)
+                        ModelState.AddModelError(string.Empty, e.Description);
+
+                    await LoadAsync(user);
+                    return Page();
+                }
+            }
+
+            // Não alteramos roles aqui (preservando alterações relacionadas a roles).
+            // Se houver lógica custom de roles, ela fica fora desta página.
+
             await _signInManager.RefreshSignInAsync(user);
-            StatusMessage = "Your profile has been updated";
+            StatusMessage = "Seu perfil foi atualizado.";
+            return RedirectToPage();
+        }
+
+        // Handler para envio de email de confirmação
+        public async Task<IActionResult> OnPostSendVerificationEmailAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Não foi possível carregar o usuário com ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadAsync(user);
+                return Page();
+            }
+
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callbackUrl = Url.Page(
+                "/Account/ConfirmEmail",
+                pageHandler: null,
+                values: new { area = "Identity", userId = user.Id, code },
+                protocol: Request.Scheme);
+
+            await _emailSender.SendEmailAsync(
+                Input.Email,
+                "Confirm your email",
+                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+            StatusMessage = "Email de confirmação enviado. Verifique sua caixa de entrada.";
             return RedirectToPage();
         }
     }
