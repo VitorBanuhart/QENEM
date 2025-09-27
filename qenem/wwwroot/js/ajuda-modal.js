@@ -4,6 +4,7 @@ $(document).ready(function () {
     const modal = $('#modalContato');
     const form = $('#formContato');
     const btnEnviar = $('#btnEnviarEmail');
+    const campoMensagemTxt = $('#campoMensagemTxt');
     const campoMensagem = $('#campoMensagem');
     const resultadoDiv = $('#resultadoModal');
     const validacaoSpan = $('#validacaoMensagem');
@@ -50,8 +51,9 @@ $(document).ready(function () {
             if (response.success) {
                 resultadoDiv.html('<div class="alert alert-success">' + response.message + '</div>');
                 // Esconde o formulário e o botão de enviar para um feedback mais claro
-                campoMensagem.hide();
+                campoMensagem.closest('.mb-3').hide();
                 btnEnviar.hide();
+                
             } else {
                 resultadoDiv.html('<div class="alert alert-danger">' + response.message + '</div>');
             }

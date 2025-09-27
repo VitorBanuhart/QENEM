@@ -1,27 +1,80 @@
 ﻿@page
-@model IndexModel
+@model qenem.Areas.Identity.Pages.Account.Manage.IndexModel
 @{
     ViewData["Title"] = "Profile";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
 <h3>@ViewData["Title"]</h3>
+
 <partial name="_StatusMessage" for="StatusMessage" />
+
 <div class="row">
     <div class="col-md-6">
-        <form id="profile-form" method="post">
+        <form id="profile-form" method="post" asp-route-returnUrl="@Url.Page("./Index")">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
             <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Input.Username" class="form-control" />
+                <label asp-for="Input.Username" class="form-label">Usuário</label>
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
             </div>
+
             <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <input asp-for="Input.Email" class="form-control" />
+                <label asp-for="Input.Email" class="form-label">E-mail</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-2">
+                @if (!Model.IsEmailConfirmed)
+                {
+                    <div class="alert alert-warning p-2">
+                        E-mail não confirmado.
+                        <button type="submit" formaction="./Index?handler=SendVerificationEmail" class="btn btn-sm btn-link">Enviar e-mail de confirmação</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-success small">E-mail confirmado</div>
+                }
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="Input.PhoneNumber" class="form-control" />
+                <label asp-for="Input.PhoneNumber" class="form-label">Número de telefone</label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+
+            <div class="mb-3">
+                <label class="form-label">Perfil</label>
+                <div>
+                    @if (Model.Roles != null && Model.Roles.Any())
+                    {
+                        <ul class="list-inline">
+                            @foreach (var r in Model.Roles)
+                            {
+                                <li class="list-inline-item badge bg-secondary">@r</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Nenhum perfil atribuído</span>
+                    }
+                </div>
+            </div>
+
+            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Salvar Alterção</button>
         </form>
+
+        <hr />
+
+        <div class="d-grid gap-2">
+            <a asp-page="./ChangePassword" class="btn btn-outline-secondary">Alterar Senha</a>
+            <a asp-page="./Email" class="btn btn-outline-secondary">Alterar e-mail</a>
+            <a asp-page="./PersonalData" class="btn btn-outline-secondary">Dados Pessoais</a>
+        </div>
     </div>
 </div>
 
