@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace qenem.Services
 {
-    public class MailerSendEmailService : IEmailSender
+    public class MailerSendEmailService : IEmailSender, IEmailService
     {
         private readonly MailerSendSetting _setting;
         private readonly HttpClient _httpClient;
