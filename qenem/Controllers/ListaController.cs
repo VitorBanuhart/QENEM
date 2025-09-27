@@ -6,11 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using qenem.Data;
 using qenem.Models;
 using qenem.Services;
-using System.Security.Claims;
+using qenem.ViewModels;
+using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QuestPDF.Fluent;
 using System.IO;
+using System.Security.Claims;
 
 namespace qenem.Controllers
 {
@@ -294,6 +295,53 @@ namespace qenem.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "Questão removida da lista." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CriarListaAjax([FromBody] NovaListaViewModel model)
+        {
+            // 1. Valida se o nome da lista foi enviado corretamente
+            if (!ModelState.IsValid)
+            {
+                var erro = ModelState.Values.FirstOrDefault()?.Errors.FirstOrDefault()?.ErrorMessage;
+                return Json(new { success = false, message = erro ?? "Dados inválidos." });
+            }
+
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { success = false, message = "Sessão expirada. Por favor, faça login novamente." });
+                }
+
+                var totalListas = await _context.Listas.CountAsync(l => l.UsuarioId == userId);
+                if (totalListas >= MAX_LISTAS_POR_USUARIO)
+                {
+                    return Json(new { success = false, message = $"Você já atingiu o limite de {MAX_LISTAS_POR_USUARIO} listas." });
+                }
+
+                var novaLista = new Lista
+                {
+                    Nome = model.Nome,
+                    UsuarioId = userId
+                };
+
+                _context.Listas.Add(novaLista);
+                await _context.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Lista criada com sucesso!",
+                    lista = new { id = novaLista.Id, nome = novaLista.Nome }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Ocorreu um erro interno ao salvar no banco de dados." });
+            }
         }
 
         [HttpPost]
