@@ -114,19 +114,22 @@ namespace qenem.Services
         {
             try
             {
-                var respostaUsuario = await _context.RespostasUsuario
-                    .FirstOrDefaultAsync(r => r.QuestaoId == questaoId);
+                // 1. Valida a resposta que o usuário acabou de enviar
+                bool estaCorreta = await ValidarResposta(questaoId, resposta);
 
-                bool estaCorreta = await ValidarResposta(simuladoId, questaoId, respostaUsuario);
+                // 2. Busca por uma resposta já existente para este simulado e questão
+                var respostaUsuario = await _context.RespostasUsuario
+                    .FirstOrDefaultAsync(r => r.QuestaoId == questaoId && r.SimuladoId == simuladoId);
 
                 if (respostaUsuario == null)
                 {
+                    // 3. Se não existir, cria uma nova instância
                     respostaUsuario = new RespostaUsuario
                     {
                         SimuladoId = simuladoId,
                         QuestaoId = questaoId,
                         Resposta = resposta,
-                        EstaCorreta = estaCorreta,
+                        EstaCorreta = estaCorreta, // Usa o resultado da validação
                         UsuarioId = userId,
                         DataResposta = DateTime.UtcNow
                     };
@@ -134,9 +137,11 @@ namespace qenem.Services
                 }
                 else
                 {
+                    // 4. Se já existir, atualiza os dados
                     respostaUsuario.Resposta = resposta;
-                    respostaUsuario.SimuladoId = respostaUsuario.SimuladoId;
+                    respostaUsuario.EstaCorreta = estaCorreta; // Atualiza o status da correção
                     respostaUsuario.DataResposta = DateTime.UtcNow;
+                    _context.RespostasUsuario.Update(respostaUsuario);
                 }
 
                 await _context.SaveChangesAsync();
@@ -147,6 +152,14 @@ namespace qenem.Services
                 _logger.LogError(ex, "Erro ao registrar resposta para questão {QuestaoId} no simulado {SimuladoId}", questaoId, simuladoId);
                 throw;
             }
+        }
+        public async Task<bool> FinalizarSimulado(Simulado? simulado)
+        {
+            if (simulado == null) return false;
+            simulado.Finalizado = true;
+            _context.Simulados.Update(simulado);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<SimuladoResultadoDto?> ObterResultadoSimulado(int simuladoId)
@@ -250,19 +263,19 @@ namespace qenem.Services
         }
 
         #region Métodos auxiliares
-        private async Task<bool> ValidarResposta(int simuladoId, string questaoId, RespostaUsuario resposta)
+        private async Task<bool> ValidarResposta(string questaoId, string respostaEnviada)
         {
             try
             {
-                if (resposta.Id != null || resposta.Id > 0)
-                    return true;
-
-                var questoesDoSimulado = await ObterQuestoesSimulado(simuladoId);
-                var questao = questoesDoSimulado.FirstOrDefault(q => q.UniqueId == questaoId);
+                // O método ObterQuestoesSimulado pode ser ineficiente se chamado repetidamente.
+                // Uma busca direta pela questão é mais performática.
+                var questao = _questionService.GetAllQuestions()
+                                              .FirstOrDefault(q => q.UniqueId == questaoId);
 
                 if (questao?.correctAlternative != null)
                 {
-                    return questao.correctAlternative.Equals(resposta.Resposta, StringComparison.OrdinalIgnoreCase);
+                    // Compara a resposta enviada pelo usuário com a alternativa correta
+                    return questao.correctAlternative.Equals(respostaEnviada, StringComparison.OrdinalIgnoreCase);
                 }
 
                 _logger.LogWarning("Questão {QuestaoId} não encontrada para verificação de resposta", questaoId);

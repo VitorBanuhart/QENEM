@@ -165,70 +165,83 @@ namespace qenem.Controllers
         [HttpGet]
         public async Task<IActionResult> Resultado(int id)
         {
-            // Busca o simulado
             var simulado = await _context.Simulados
                 .FirstOrDefaultAsync(s => s.Id == id);
-
-            if (simulado == null)
-                return NotFound();
-
-            // Busca as respostas do usuário
-            var respostas = await _context.RespostasUsuario
-                .Where(r => r.SimuladoId == id)
-                .ToListAsync();
-
-            // Busca as questões do simulado
-            var questoes = await _context.ListaSimulados
-                .Where(q => q.SimuladoId == id)
-                .ToListAsync();
-
-            // Faz join das respostas com as questões para obter a área
-            var respostasComArea = respostas
-                .Join(
-                    questoes,
-                    r => r.QuestaoId,
-                    q => q.UniqueId,
-                    (r, q) => new
-                    {
-                        r.Resposta,
-                        r.EstaCorreta,
-                        Area = q.AreaQuestao
-                    }
-                )
-                .ToList();
-
-            var totalQuestoes = respostasComArea.Count;
-            var totalAcertos = respostasComArea.Count(r => r.EstaCorreta == true);
-
-            // Agrupa por área usando AreaResultadoDto
-            var resultadosPorArea = respostasComArea
-                .GroupBy(r => r.Area)
-                .Select(g => new AreaResultadoDto
-                {
-                    Area = g.Key,
-                    TotalQuestoes = g.Count(),
-                    QuestoesRespondidas = g.Count(r => !string.IsNullOrEmpty(r.Resposta)),
-                    Acertos = g.Count(r => r.EstaCorreta == true),
-                    Porcentagem = g.Count() == 0 ? 0 : (double)g.Count(r => r.EstaCorreta == true) / g.Count() * 100
-                })
-                .ToList();
-
-            // Cria DTO para a view
-            var resultadoDto = new SimuladoResultadoDto
+            if (simulado != null && !simulado.Finalizado)
             {
-                SimuladoId = simulado.Id,
-                Nome = simulado.Nome,
-                DataCriacao = simulado.DataCriacao,
-                TempoGasto = simulado.TempoGasto,
-                TotalQuestoes = totalQuestoes,
-                QuestoesRespondidas = respostasComArea.Count(r => !string.IsNullOrEmpty(r.Resposta)),
-                TotalAcertos = totalAcertos,
-                PorcentagemGeral = totalQuestoes == 0 ? 0 : (double)totalAcertos / totalQuestoes * 100,
-                ResultadosPorArea = resultadosPorArea
-            };
-
-            return View(resultadoDto);
+                await _simuladoService.FinalizarSimulado(simulado);
+            }
+            var resultado = await _simuladoService.ObterResultadoSimulado(id);
+            return View(resultado);
         }
+
+        //[HttpGet]
+        //public async Task<IActionResult> Resultado(int id)
+        //{
+        //    // Busca o simulado
+        //    var simulado = await _context.Simulados
+        //        .FirstOrDefaultAsync(s => s.Id == id);
+
+        //    if (simulado == null)
+        //        return NotFound();
+
+        //    // Busca as respostas do usuário
+        //    var respostas = await _context.RespostasUsuario
+        //        .Where(r => r.SimuladoId == id)
+        //        .ToListAsync();
+
+        //    // Busca as questões do simulado
+        //    var questoes = await _context.ListaSimulados
+        //        .Where(q => q.SimuladoId == id)
+        //        .ToListAsync();
+
+        //    // Faz join das respostas com as questões para obter a área
+        //    var respostasComArea = respostas
+        //        .Join(
+        //            questoes,
+        //            r => r.QuestaoId,
+        //            q => q.UniqueId,
+        //            (r, q) => new
+        //            {
+        //                r.Resposta,
+        //                r.EstaCorreta,
+        //                Area = q.AreaQuestao
+        //            }
+        //        )
+        //        .ToList();
+
+        //    var totalQuestoes = respostasComArea.Count;
+        //    var totalAcertos = respostasComArea.Count(r => r.EstaCorreta == true);
+
+        //    // Agrupa por área usando AreaResultadoDto
+        //    var resultadosPorArea = respostasComArea
+        //        .GroupBy(r => r.Area)
+        //        .Select(g => new AreaResultadoDto
+        //        {
+        //            Area = g.Key,
+        //            TotalQuestoes = g.Count(),
+        //            QuestoesRespondidas = g.Count(r => !string.IsNullOrEmpty(r.Resposta)),
+        //            Acertos = g.Count(r => r.EstaCorreta == true),
+        //            Porcentagem = g.Count() == 0 ? 0 : (double)g.Count(r => r.EstaCorreta == true) / g.Count() * 100
+        //        })
+        //        .ToList();
+
+        //    // Cria DTO para a view
+        //    var resultadoDto = new SimuladoResultadoDto
+        //    {
+        //        SimuladoId = simulado.Id,
+        //        Nome = simulado.Nome,
+        //        DataCriacao = simulado.DataCriacao,
+        //        TempoGasto = simulado.TempoGasto,
+        //        TotalQuestoes = totalQuestoes,
+        //        QuestoesRespondidas = respostasComArea.Count(r => !string.IsNullOrEmpty(r.Resposta)),
+        //        TotalAcertos = totalAcertos,
+        //        PorcentagemGeral = totalQuestoes == 0 ? 0 : (double)totalAcertos / totalQuestoes * 100,
+        //        ResultadosPorArea = resultadosPorArea
+        //    };
+
+        //    return View(resultadoDto);
+        //}
 
 
 
