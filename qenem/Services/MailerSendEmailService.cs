@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Options;
 using qenem.Interfaces;
 using System.Net.Http.Headers;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text.Json;
 
 namespace qenem.Services
 {
-    public class MailerSendEmailService : IEmailService
+    public class MailerSendEmailService : IEmailSender, IEmailService
     {
         private readonly MailerSendSetting _setting;
         private readonly HttpClient _httpClient;
