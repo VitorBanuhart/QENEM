@@ -15,17 +15,18 @@ namespace qenem.Controllers
         private readonly QuestionService _questionService;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-
+        private readonly PontosService _pontosService;
 
         public SimuladoController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            SimuladoService simuladoService, QuestionService questionService)
+            SimuladoService simuladoService, QuestionService questionService, PontosService pontosService)
         {
             _context = context;
             _userManager = userManager;
             _simuladoService = simuladoService;
             _questionService = questionService;
+            _pontosService = pontosService;
         }
         public async Task<IActionResult> Index()
         {
@@ -90,7 +91,7 @@ namespace qenem.Controllers
                 }
 
                 var novaResposta= await _simuladoService.RegistrarResposta(data.SimuladoId, data.QuestaoId, data.Resposta, user.Id);
-
+                _pontosService.PontosSimulado(user);
                 if (novaResposta != null)
                 {
                     return Json(new { success = true, resposta = new { Id = novaResposta.Id } });
@@ -172,6 +173,7 @@ namespace qenem.Controllers
                 await _simuladoService.FinalizarSimulado(simulado);
             }
             var resultado = await _simuladoService.ObterResultadoSimulado(id);
+            
             return View(resultado);
         }
 

@@ -16,6 +16,7 @@ namespace qenem.Data
         public DbSet<ListaQuestaoSimulado> ListaSimulados { get; set; }
         public DbSet<Simulado> Simulados { get; set; }
         public DbSet<RespostaUsuario> RespostasUsuario { get; set; }
+        public DbSet<Pontos> Pontos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
