@@ -12,7 +12,7 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250920212717_MigrationInicial")]
+    [Migration("20251008234957_MigrationInicial")]
     partial class MigrationInicial
     {
         /// <inheritdoc />
@@ -260,6 +260,30 @@ namespace qenem.Migrations
                     b.HasKey("IdAreaInteresse");
 
                     b.ToTable("AreasInteresse");
+                });
+
+            modelBuilder.Entity("qenem.Models.AvaliaQuestao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Avaliacao")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestaoId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AvaliaQuestao");
                 });
 
             modelBuilder.Entity("qenem.Models.Lista", b =>

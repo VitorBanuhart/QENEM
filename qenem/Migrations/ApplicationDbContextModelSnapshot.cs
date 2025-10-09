@@ -171,7 +171,7 @@ namespace qenem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("Alternative", (string)null);
+                    b.ToTable("Alternative");
                 });
 
             modelBuilder.Entity("qenem.Models.ApplicationUser", b =>
@@ -256,7 +256,31 @@ namespace qenem.Migrations
 
                     b.HasKey("IdAreaInteresse");
 
-                    b.ToTable("AreasInteresse", (string)null);
+                    b.ToTable("AreasInteresse");
+                });
+
+            modelBuilder.Entity("qenem.Models.AvaliaQuestao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Avaliacao")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestaoId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AvaliaQuestao");
                 });
 
             modelBuilder.Entity("qenem.Models.Lista", b =>
@@ -280,7 +304,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Listas", (string)null);
+                    b.ToTable("Listas");
                 });
 
             modelBuilder.Entity("qenem.Models.ListaQuestao", b =>
@@ -302,7 +326,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("ListaId");
 
-                    b.ToTable("ListaQuestoes", (string)null);
+                    b.ToTable("ListaQuestoes");
                 });
 
             modelBuilder.Entity("qenem.Models.ListaQuestaoSimulado", b =>
@@ -331,7 +355,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("SimuladoId");
 
-                    b.ToTable("ListaSimulados", (string)null);
+                    b.ToTable("ListaSimulados");
                 });
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
@@ -366,7 +390,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("SimuladoId");
 
-                    b.ToTable("RespostasUsuario", (string)null);
+                    b.ToTable("RespostasUsuario");
                 });
 
             modelBuilder.Entity("qenem.Models.Simulado", b =>
@@ -409,7 +433,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Simulados", (string)null);
+                    b.ToTable("Simulados");
                 });
 
             modelBuilder.Entity("qenem.Models.UsuarioArea", b =>
@@ -433,7 +457,7 @@ namespace qenem.Migrations
 
                     b.HasIndex("Id_Usuario");
 
-                    b.ToTable("UsuarioAreas", (string)null);
+                    b.ToTable("UsuarioAreas");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

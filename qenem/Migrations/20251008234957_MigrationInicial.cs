@@ -77,6 +77,21 @@ namespace qenem.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AvaliaQuestao",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    QuestaoId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Avaliacao = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AvaliaQuestao", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -415,6 +430,9 @@ namespace qenem.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "AvaliaQuestao");
 
             migrationBuilder.DropTable(
                 name: "ListaQuestoes");
