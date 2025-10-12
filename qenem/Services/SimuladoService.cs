@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using qenem.Data;
@@ -12,15 +13,23 @@ namespace qenem.Services
         private readonly QuestionService _questionService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<SimuladoService> _logger;
+        private readonly PontosService _pontosService;
+        private readonly UserManager<ApplicationUser> _userManager;
+
 
         public SimuladoService(
             QuestionService questionService,
             ApplicationDbContext context,
-            ILogger<SimuladoService> logger)
+            ILogger<SimuladoService> logger,
+            PontosService pontosService,
+            UserManager<ApplicationUser> userManager)
         {
             _questionService = questionService;
             _context = context;
             _logger = logger;
+            _pontosService = pontosService;
+            _userManager = userManager;
+
         }
 
         // TO DO:

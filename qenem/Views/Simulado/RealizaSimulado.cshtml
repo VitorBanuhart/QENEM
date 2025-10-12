@@ -136,7 +136,7 @@
                     }
                     @if(Model.QuestaoAtualIndex >= Model.TotalQuestoes - 1)
                     {
-                        <a asp-action="Resultado" asp-route-Id="@Model.SimuladoId" class="btn btn-success">Finalizar Simulado</a>
+                        <button class="btn btn-success">Finalizar Simulado</button>
                     }
                     else
                     {
@@ -177,7 +177,8 @@
                     const total = @Model.TotalQuestoes;
 
                     if (proximaIndex >= total) {
-                        window.location.href = `/Simulado/Resultado?simuladoId=${simuladoId}`;
+                        console.log(simuladoId);
+                        window.location.href = `/Simulado/RealizaSimulado?id=${simuladoId}&questaoIndex=${proximaIndex}`;
                     } else {
                         window.location.href = `/Simulado/RealizaSimulado?id=${simuladoId}&questaoIndex=${proximaIndex}`;
                     }

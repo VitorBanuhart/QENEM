@@ -12,23 +12,31 @@ namespace qenem.Services
             _context = context;
         }
 
-        public bool PontosSimulado (ApplicationUser idUsuario)
+        public bool PontosSimulado (ApplicationUser idUsuario, int TotalAcertos, int TotalQuestoes)
         {
             var pontuacaoDoUsuario = _context.Pontos.FirstOrDefault(p => p.Usuario == idUsuario.Id);
 
             if (pontuacaoDoUsuario != null)
             {
-                pontuacaoDoUsuario.TotalPontuacao += 100;
+                pontuacaoDoUsuario.TotalPontuacao += 10 * TotalAcertos;
+
             }
             else
             {
                 var novaPontuacao = new Models.Pontos
                 {
                     Usuario = idUsuario.Id,
-                    TotalPontuacao = 100
+                    TotalPontuacao = 10 * TotalAcertos
                 };
                 _context.Pontos.Add(novaPontuacao);
+                _context.SaveChanges();
             }
+
+            if (TotalAcertos == TotalQuestoes)
+            {
+                pontuacaoDoUsuario.TotalPontuacao += 50;
+            }
+
             _context.SaveChanges();
             return true;
         }
