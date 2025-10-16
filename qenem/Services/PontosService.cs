@@ -12,7 +12,7 @@ namespace qenem.Services
             _context = context;
         }
 
-        public bool PontosSimulado (ApplicationUser idUsuario, int TotalAcertos, int TotalQuestoes)
+        public void PontosSimulado (ApplicationUser idUsuario, int TotalAcertos, int TotalQuestoes)
         {
             var pontuacaoDoUsuario = _context.Pontos.FirstOrDefault(p => p.Usuario == idUsuario.Id);
 
@@ -38,7 +38,29 @@ namespace qenem.Services
             }
 
             _context.SaveChanges();
-            return true;
+        }
+
+        public void PontosQuestoes (String idUsuario)
+        {
+            var pontuacaoDoUsuario = _context.Pontos.FirstOrDefault(p => p.Usuario == idUsuario);
+
+            if (pontuacaoDoUsuario != null)
+            {
+                pontuacaoDoUsuario.TotalPontuacao += 10;
+
+            }
+            else
+            {
+                var novaPontuacao = new Models.Pontos
+                {
+                    Usuario = idUsuario,
+                    TotalPontuacao = 10
+                };
+                _context.Pontos.Add(novaPontuacao);
+                _context.SaveChanges();
+            }
+
+            _context.SaveChanges();
         }
     }
 }
