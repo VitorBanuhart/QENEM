@@ -12,6 +12,12 @@ namespace qenem.Services
             _context = context;
         }
 
+        public int totalPontos (String idUsuario)
+        {
+            var totalPonto = _context.Pontos.FirstOrDefault(p => p.Usuario == idUsuario);
+            return totalPonto?.TotalPontuacao ?? 0;
+        }
+
         public void PontosSimulado (ApplicationUser idUsuario, int TotalAcertos, int TotalQuestoes)
         {
             var pontuacaoDoUsuario = _context.Pontos.FirstOrDefault(p => p.Usuario == idUsuario.Id);
