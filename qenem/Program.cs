@@ -38,7 +38,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
-
+builder.Services.AddScoped<PontosService>();
 builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("MailerSend"));
 
 var app = builder.Build();
