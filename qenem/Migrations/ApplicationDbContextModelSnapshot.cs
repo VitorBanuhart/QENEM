@@ -272,13 +272,16 @@ namespace qenem.Migrations
 
                     b.Property<string>("QuestaoId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Usuario")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Usuario", "QuestaoId")
+                        .IsUnique();
 
                     b.ToTable("AvaliaQuestao");
                 });

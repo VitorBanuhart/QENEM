@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationInicial : Migration
+    public partial class inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -82,8 +82,8 @@ namespace qenem.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    QuestaoId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Usuario = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    QuestaoId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Avaliacao = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -373,6 +373,12 @@ namespace qenem.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AvaliaQuestao_Usuario_QuestaoId",
+                table: "AvaliaQuestao",
+                columns: new[] { "Usuario", "QuestaoId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ListaQuestoes_ListaId",

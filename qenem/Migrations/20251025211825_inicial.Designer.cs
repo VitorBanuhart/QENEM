@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251008234957_MigrationInicial")]
-    partial class MigrationInicial
+    [Migration("20251025211825_inicial")]
+    partial class inicial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -275,13 +275,16 @@ namespace qenem.Migrations
 
                     b.Property<string>("QuestaoId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Usuario")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Usuario", "QuestaoId")
+                        .IsUnique();
 
                     b.ToTable("AvaliaQuestao");
                 });
