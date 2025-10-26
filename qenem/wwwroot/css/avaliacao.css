@@ -1,0 +1,18 @@
+﻿.estrelas {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 24px;
+}
+
+    .estrelas .estrela:hover,
+    .estrelas .estrela.selecionada {
+        color: #ffc107; /* Amarelo */
+    }
+
+    .estrelas:hover .estrela {
+        color: #ccc;
+    }
+
+    .estrelas .estrela:hover ~ .estrela {
+        color: #ccc;
+    }

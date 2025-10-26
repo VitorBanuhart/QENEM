@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250920212717_MigrationInicial")]
-    partial class MigrationInicial
+    [Migration("20251008000334_jjjjjj")]
+    partial class jjjjjj
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -335,6 +335,26 @@ namespace qenem.Migrations
                     b.HasIndex("SimuladoId");
 
                     b.ToTable("ListaSimulados");
+                });
+
+            modelBuilder.Entity("qenem.Models.Pontos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TotalPontuacao")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Pontos");
                 });
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>

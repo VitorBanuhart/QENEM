@@ -15,17 +15,18 @@ namespace qenem.Controllers
         private readonly QuestionService _questionService;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-
+        private readonly PontosService _pontosService;
 
         public SimuladoController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            SimuladoService simuladoService, QuestionService questionService)
+            SimuladoService simuladoService, QuestionService questionService, PontosService pontosService)
         {
             _context = context;
             _userManager = userManager;
             _simuladoService = simuladoService;
             _questionService = questionService;
+            _pontosService = pontosService;
         }
         public async Task<IActionResult> Index()
         {
@@ -90,7 +91,6 @@ namespace qenem.Controllers
                 }
 
                 var novaResposta= await _simuladoService.RegistrarResposta(data.SimuladoId, data.QuestaoId, data.Resposta, user.Id);
-
                 if (novaResposta != null)
                 {
                     return Json(new { success = true, resposta = new { Id = novaResposta.Id } });
@@ -132,15 +132,13 @@ namespace qenem.Controllers
             }
 
             var questoesDoSimulado = await _simuladoService.ObterQuestoesSimulado(id);
-
             //TO DO:
             //entender a lógica para redirecionar p/ resultado
-            if (questaoIndex < 0 || questaoIndex >= questoesDoSimulado.Count) 
+            if (questaoIndex < 0 || questaoIndex >= questoesDoSimulado.Count)
             {
                 //await _simuladoService.FinalizarSimulado(simulado.Id, /* tempoGasto */ null);
                 return RedirectToAction("Resultado", new { id = simulado.Id });
             }
-
             var questaoAtual = questoesDoSimulado[questaoIndex];
 
             var respostasSalvas = (simulado.Respostas ?? new List<RespostaUsuario>())
@@ -159,12 +157,14 @@ namespace qenem.Controllers
                 RespostasSalvas = respostasSalvas
             };
 
+
             return View(dadosView);
         }
 
         [HttpGet]
         public async Task<IActionResult> Resultado(int id)
         {
+            var user = await _userManager.GetUserAsync(User);
             var simulado = await _context.Simulados
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (simulado != null && !simulado.Finalizado)
@@ -172,6 +172,7 @@ namespace qenem.Controllers
                 await _simuladoService.FinalizarSimulado(simulado);
             }
             var resultado = await _simuladoService.ObterResultadoSimulado(id);
+            _pontosService.PontosSimulado(user, resultado.TotalAcertos, resultado.TotalQuestoes);
             return View(resultado);
         }
 

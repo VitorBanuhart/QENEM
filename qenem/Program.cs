@@ -27,17 +27,18 @@ builder.Services.AddSingleton<QuestionService>(sp =>
 builder.Services.AddScoped<IEmailSender, MailerSendEmailService>();
 builder.Services.AddScoped<IEmailService, MailerSendEmailService>();
 builder.Services.AddScoped<SimuladoService>();
+builder.Services.AddScoped<AvaliacaoService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, MailerSendEmailService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
-
+builder.Services.AddScoped<PontosService>();
 builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("MailerSend"));
 
 var app = builder.Build();

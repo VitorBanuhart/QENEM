@@ -1,10 +1,15 @@
 @using Microsoft.AspNetCore.Identity
+@using qenem.Services
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject PontosService pontos
 
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
+    <li class="nav-item">
+            <p class="nav-link text-dark">Total de pontos: @pontos.totalPontos(UserManager.GetUserAsync(User).Result!.Id)</p>
+    </li>
     <li class="nav-item">
 
         <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Olá @UserManager.GetUserName(User)!</a>

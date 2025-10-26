@@ -16,6 +16,9 @@ namespace qenem.Data
         public DbSet<ListaQuestaoSimulado> ListaSimulados { get; set; }
         public DbSet<Simulado> Simulados { get; set; }
         public DbSet<RespostaUsuario> RespostasUsuario { get; set; }
+        public DbSet<Pontos> Pontos { get; set; }
+
+        public DbSet<AvaliaQuestao> AvaliarQuestoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +45,11 @@ namespace qenem.Data
                 .Property(ai => ai.NomeAreaInteresse)
                 .HasMaxLength(50)
                 .IsRequired();
+
+            modelBuilder.Entity<AvaliaQuestao>()
+                .HasIndex(a => new { a.Usuario, a.QuestaoId })
+                .IsUnique();
+
         }
     }
 }
