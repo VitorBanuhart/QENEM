@@ -157,5 +157,11 @@ namespace qenem.Services
 
             return resultado;
         }
+
+        public Question? GetByUniqueId(string uniqueId)
+        {
+            var allQuestions = LoadQuestions();
+            return allQuestions.FirstOrDefault(q => q.UniqueId == uniqueId);
+        }
     }
 }

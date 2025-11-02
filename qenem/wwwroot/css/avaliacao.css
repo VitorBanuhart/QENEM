@@ -1,18 +1,69 @@
-﻿.estrelas {
-    cursor: pointer;
-    color: #ccc;
-    font-size: 24px;
+﻿.avaliacao-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start; /* mantém alinhamento com texto ao lado */
 }
 
-    .estrelas .estrela:hover,
-    .estrelas .estrela.selecionada {
-        color: #ffc107; /* Amarelo */
+
+.avaliacao-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: transparent;
+    cursor: pointer;
+    min-width: 68px; /* compacto */
+    box-shadow: none;
+}
+
+
+    .avaliacao-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.03);
     }
 
-    .estrelas:hover .estrela {
-        color: #ccc;
+
+    /* detalhes por tipo (borda esquerda) */
+    .avaliacao-btn[data-value="1"] {
+        border-left: 4px solid #198754;
+    }
+    /* verde (Fácil) */
+    .avaliacao-btn[data-value="2"] {
+        border-left: 4px solid #ffc107;
+    }
+    /* amarelo (Médio) */
+    .avaliacao-btn[data-value="3"] {
+        border-left: 4px solid #dc3545;
+    }
+    /* vermelho (Difícil) */
+
+
+    /* Estado pressionado/ativo */
+    .avaliacao-btn.active[data-value="1"] {
+        background: rgba(25,135,84,0.08);
     }
 
-    .estrelas .estrela:hover ~ .estrela {
-        color: #ccc;
+    .avaliacao-btn.active[data-value="2"] {
+        background: rgba(255,193,7,0.08);
     }
+
+    .avaliacao-btn.active[data-value="3"] {
+        background: rgba(220,53,69,0.08);
+    }
+
+
+    /* Pequena variação de texto quando ativo */
+    .avaliacao-btn.active {
+        font-weight: 600;
+    }
+
+
+/* Mantém compatibilidade visual com o layout atual, não ocupa muito espaço */
+.avaliacao-menu.small {
+    gap: 4px;
+}
