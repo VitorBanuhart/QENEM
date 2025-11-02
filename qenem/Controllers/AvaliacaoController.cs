@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using qenem.Data;
 using qenem.Models;
@@ -7,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace qenem.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AvaliacaoController : ControllerBase
+    [Authorize]
+    public class AvaliacaoController : Controller
     {
         private readonly AvaliacaoService _avaliacaoService;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -32,8 +32,8 @@ namespace qenem.Controllers
             public int Avaliacao { get; set; } 
         }
 
-        // POST: api/avaliacao/salvar
-        [HttpPost("salvar")]
+        // POST: /avaliacao/salvar
+        [HttpPost]
         public async Task<IActionResult> Salvar([FromBody] AvaliacaoDto dto)
         {
             var usuarioId = User?.Identity?.Name;
@@ -60,7 +60,6 @@ namespace qenem.Controllers
 
             try
             {
-                // Chame o método já existente do seu service (ajuste assinatura se necessário)
                 await _avaliacaoService.SalvarOuAtualizarAvaliacaoAsync(new AvaliacaoService.AvaliacaoDto
                 {
                     Usuario = usuarioId,
@@ -76,8 +75,8 @@ namespace qenem.Controllers
             }
         }
 
-        // GET: api/avaliacao/verificar/{questaoId}
-        [HttpGet("verificar")]
+        // GET: avaliacao/verificar/{questaoId}
+        [HttpGet]
         public IActionResult Verificar([FromQuery] string questaoPath)
         {
             var usuarioId = User?.Identity?.Name;

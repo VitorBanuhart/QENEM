@@ -55,7 +55,14 @@ namespace qenem.Services
                 // atualiza
                 existente.Avaliacao = dto.Avaliacao;
                 // sem .Update() necessário porque a entidade já está sendo rastreada
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                } catch (Exception e)
+                {
+                    Console.WriteLine($"Ocorreu um erro inesperado: {e.Message}");
+
+                }
 
                 return new AvaliacaoResultDto
                 {
@@ -73,15 +80,41 @@ namespace qenem.Services
                 Avaliacao = dto.Avaliacao
             };
 
-            _context.AvaliarQuestoes.Add(nova);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.AvaliarQuestoes.Add(nova);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                // Este é o erro mais provável vindo do Entity Framework ao salvar.
+                // Você pode inspecionar 'ex.InnerException' para obter detalhes mais específicos do banco de dados.
+                Console.WriteLine($"Ocorreu um erro ao salvar no banco de dados: {ex.Message}");
+
+                // Se quiser ver a exceção interna (geralmente mais útil para depuração):
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Detalhe do erro (InnerException): {ex.InnerException.Message}");
+                }
+
+                // TODO: Adicione aqui a lógica para lidar com o erro
+                // (Ex: retornar uma mensagem de erro para o usuário, fazer rollback de algo, etc.)
+            }
+            catch (Exception ex)
+            {
+                // Captura qualquer outro erro inesperado que possa ocorrer.
+                Console.WriteLine($"Ocorreu um erro inesperado: {ex.Message}");
+
+                //
+            }
 
             return new AvaliacaoResultDto
-            {
-                Success = true,
-                Avaliacao = nova.Avaliacao,
-                Message = "Avaliação salva com sucesso."
-            };
+                {
+                    Success = true,
+                    Avaliacao = nova.Avaliacao,
+                    Message = "Avaliação salva com sucesso."
+                };
+            
         }
 
         // Verifica se o usuário já avaliou a questão (retorna DTO).

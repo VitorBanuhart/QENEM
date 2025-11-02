@@ -283,7 +283,7 @@ namespace qenem.Migrations
                     b.HasIndex("Usuario", "QuestaoId")
                         .IsUnique();
 
-                    b.ToTable("AvaliaQuestao");
+                    b.ToTable("AvaliarQuestoes");
                 });
 
             modelBuilder.Entity("qenem.Models.Lista", b =>

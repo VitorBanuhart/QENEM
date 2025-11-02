@@ -47,7 +47,7 @@
     async function salvarAvaliacao(questaoId, valor, botao) {
         try {
             const payload = { QuestaoId: questaoId, Avaliacao: valor };
-            const resp = await fetch('/api/avaliacao/salvar', {
+            const resp = await fetch('/avaliacao/salvar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -86,7 +86,7 @@
 
         // consulta se existe avaliação previamente
         try {
-            const response = await fetch(`/api/avaliacao/verificar?questaoPath=${encodeURIComponent(String(questaoId))}`, { credentials: 'same-origin' });
+            const response = await fetch(`/avaliacao/verificar?questaoPath=${encodeURIComponent(String(questaoId))}`, { credentials: 'same-origin' });
             if (response.ok) {
                 const result = await response.json();
                 if (result && result.success && (result.avaliacao !== null && result.avaliacao !== undefined)) {

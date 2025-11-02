@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationInicial : Migration
+    public partial class initialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -77,7 +77,7 @@ namespace qenem.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AvaliaQuestao",
+                name: "AvaliarQuestoes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -88,21 +88,7 @@ namespace qenem.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AvaliaQuestao", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Pontos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TotalPontuacao = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Pontos", x => x.Id);
+                    table.PrimaryKey("PK_AvaliarQuestoes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -389,8 +375,8 @@ namespace qenem.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AvaliaQuestao_Usuario_QuestaoId",
-                table: "AvaliaQuestao",
+                name: "IX_AvaliarQuestoes_Usuario_QuestaoId",
+                table: "AvaliarQuestoes",
                 columns: new[] { "Usuario", "QuestaoId" },
                 unique: true);
 
@@ -452,16 +438,13 @@ namespace qenem.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "AvaliaQuestao");
+                name: "AvaliarQuestoes");
 
             migrationBuilder.DropTable(
                 name: "ListaQuestoes");
 
             migrationBuilder.DropTable(
                 name: "ListaSimulados");
-
-            migrationBuilder.DropTable(
-                name: "Pontos");
 
             migrationBuilder.DropTable(
                 name: "RespostasUsuario");
