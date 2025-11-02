@@ -141,7 +141,7 @@ namespace qenem.Services
                     Success = true,
                     Avaliacao = avaliacao.Avaliacao,
                     Message = "Avaliação encontrada."
-                };
+                };  
             }
 
             return new AvaliacaoResultDto

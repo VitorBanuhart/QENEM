@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using qenem.Data;
 using qenem.Models;
 using qenem.Services;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace qenem.Controllers
@@ -36,7 +37,7 @@ namespace qenem.Controllers
         [HttpPost]
         public async Task<IActionResult> Salvar([FromBody] AvaliacaoDto dto)
         {
-            var usuarioId = User?.Identity?.Name;
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (dto == null)
                 return BadRequest(new { success = false, message = "Payload inválido." });
 
@@ -77,26 +78,33 @@ namespace qenem.Controllers
 
         // GET: avaliacao/verificar/{questaoId}
         [HttpGet]
-        public IActionResult Verificar([FromQuery] string questaoPath)
+        public async Task<IActionResult> Verificar([FromQuery] string questaoPath)
         {
-            var usuarioId = User?.Identity?.Name;
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrWhiteSpace(questaoPath))
                 return BadRequest(new { success = false, message = "questaoPath ausente" });
 
-            // Tentar converter para int se, por acaso, foi enviado um ID numérico
-            if (int.TryParse(questaoPath, out int questaoIdNumeric))
+            // Resolve questaoPath -> UniqueId, quando necessário
+            string questaoId = questaoPath;
+            if (!int.TryParse(questaoPath, out _))
             {
-                var avaliacao = _avaliacaoService.VerificarAvaliacaoAsync(usuarioId, questaoPath); // adapte para seu método
-                return Ok(new { success = true, avaliacao = avaliacao });
+                var question = _questionService.GetByUniqueId(questaoPath);
+                if (question == null)
+                    return NotFound(new { success = false, message = "Questão não encontrada para o caminho informado." });
+
+                questaoId = question.UniqueId;
             }
 
-            // Caso contrário, resolver usando o serviço que carrega JSON (UniqueId -> Question)
-            var question = _questionService.GetByUniqueId(questaoPath); // **implemente/adapte este método se necessário**
-            if (question == null)
-                return NotFound(new { success = false, message = "Questão não encontrada para o caminho informado." });
+            // Aguardamos o resultado do service corretamente
+            var avaliacaoResult = await _avaliacaoService.VerificarAvaliacaoAsync(usuarioId, questaoId);
 
-            var avaliacaoPorQuestao = _avaliacaoService.VerificarAvaliacaoAsync(usuarioId, question.UniqueId); // adapte nome do método
-            return Ok(new { success = true, avaliacao = avaliacaoPorQuestao });
+            // Retornamos apenas os dados que o JS precisa (avaliacao como inteiro / null)
+            return Ok(new
+            {
+                success = avaliacaoResult?.Success ?? false,
+                avaliacao = avaliacaoResult?.Avaliacao, // será int? ou null
+                message = avaliacaoResult?.Message
+            });
         }
     }
 }
