@@ -20,6 +20,8 @@ namespace qenem.Data
 
         public DbSet<AvaliaQuestao> AvaliarQuestoes { get; set; }
 
+        public DbSet<qenem.Models.Anotacoes> Anotacoes { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

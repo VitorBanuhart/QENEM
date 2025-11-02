@@ -174,6 +174,27 @@ namespace qenem.Migrations
                     b.ToTable("Alternative");
                 });
 
+            modelBuilder.Entity("qenem.Models.Anotacoes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnotacoesUsuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Anotacoes");
+                });
+
             modelBuilder.Entity("qenem.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")

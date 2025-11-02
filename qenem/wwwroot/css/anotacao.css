@@ -1,0 +1,116 @@
+﻿/* anotações - canto inferior esquerdo, tom amarelado "papel" */
+.anotacoes-toggle {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 1050;
+    background: #f7e9a9;
+    color: #333;
+    border: 1px solid #e0c85a;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* painel */
+.anotacoes-panel {
+    position: fixed;
+    left: 16px;
+    bottom: 64px;
+    width: 320px;
+    max-height: 420px;
+    background: linear-gradient(180deg, #fffde7 0%, #fff9d6 100%);
+    border: 1px solid #e6d373;
+    border-radius: 8px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+    overflow: hidden;
+    transform: translateY(110%);
+    transition: transform 300ms ease;
+    z-index: 1049;
+    display: flex;
+    flex-direction: column;
+}
+
+    .anotacoes-panel.open {
+        transform: translateY(0%);
+    }
+
+    .anotacoes-panel .header {
+        padding: 8px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        min-height: 34px;
+    }
+
+.anotacoes-close {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.anotacoes-saved {
+    position: absolute;
+    left: 12px;
+    top: 8px;
+    display: none;
+}
+
+    .anotacoes-saved.show {
+        display: inline-block;
+    }
+
+.anotacoes-panel .content {
+    padding: 8px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.anotacoes-textarea {
+    width: 100%;
+    min-height: 220px;
+    max-height: 360px;
+    resize: vertical;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    line-height: 1.4;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.anotacoes-panel .footer {
+    padding: 8px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.anotacoes-save {
+    background: #f2c94c;
+    border: 1px solid #d9a824;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+    .anotacoes-save:active {
+        transform: translateY(1px);
+    }
+
+@media (min-width: 1200px) {
+    .anotacoes-panel {
+        width: 360px;
+    }
+}

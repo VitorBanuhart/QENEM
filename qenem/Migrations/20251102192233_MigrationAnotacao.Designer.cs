@@ -12,8 +12,8 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251025211825_inicial")]
-    partial class inicial
+    [Migration("20251102192233_MigrationAnotacao")]
+    partial class MigrationAnotacao
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -175,6 +175,27 @@ namespace qenem.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.ToTable("Alternative");
+                });
+
+            modelBuilder.Entity("qenem.Models.Anotacoes", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnotacoesUsuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Anotacoes");
                 });
 
             modelBuilder.Entity("qenem.Models.ApplicationUser", b =>
@@ -362,6 +383,26 @@ namespace qenem.Migrations
                     b.HasIndex("SimuladoId");
 
                     b.ToTable("ListaSimulados");
+                });
+
+            modelBuilder.Entity("qenem.Models.Pontos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TotalPontuacao")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Pontos");
                 });
 
             modelBuilder.Entity("qenem.Models.RespostaUsuario", b =>
