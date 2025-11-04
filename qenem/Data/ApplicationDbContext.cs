@@ -16,8 +16,11 @@ namespace qenem.Data
         public DbSet<ListaQuestaoSimulado> ListaSimulados { get; set; }
         public DbSet<Simulado> Simulados { get; set; }
         public DbSet<RespostaUsuario> RespostasUsuario { get; set; }
+        public DbSet<Pontos> Pontos { get; set; }
 
         public DbSet<AvaliaQuestao> AvaliarQuestoes { get; set; }
+
+        public DbSet<qenem.Models.Anotacoes> Anotacoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

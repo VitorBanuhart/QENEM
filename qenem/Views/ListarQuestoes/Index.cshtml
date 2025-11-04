@@ -1,6 +1,8 @@
 ﻿@model List<qenem.Models.Question>
 @using Markdig
 @using System.Text.Json
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Questões ENEM";
@@ -9,7 +11,7 @@
     <link rel="stylesheet" href="~/css/avaliacao.css" asp-append-version="true" />
 }
 
-<div class="container mt-4">
+<div class="container mt-4" data-userid="@UserManager.GetUserId(User)" id="container-questoes">
 
     @if (Model.Any())
     {
@@ -57,8 +59,8 @@
 
 
                             <button class="btn btn-info" onclick="anterior(@i)" @(i == 0 ? "disabled" : "")>Anterior</button>
-                            
-                            <button class="btn btn-success" onclick="verificarResposta(@i)">Verificar</button>
+
+                            <button class="btn btn-success" onclick="gerenciarVerificacao(@i)">Verificar</button>
 
                             @if (i == Model.Count - 1)
                             {
@@ -135,6 +137,21 @@
             btn.classList.add('active');
         }
 
+        async function gerenciarVerificacao(index) {
+            const resultado = verificarResposta(index);
+            
+            if (resultado === null) {
+                return;
+            }
+
+            if (resultado) {
+                resultadoDaInteracao = await Swal.fire("Parabéns!", "Resposta correta!", "success");
+            } else {
+                const correta = document.getElementById('questao-' + index).dataset.correcta;
+                resultadoDaInteracao = await Swal.fire("Incorreto", "A resposta correta é: " + correta, "error");
+            }
+        }
+
         function verificarResposta(index) {
             const questaoDiv = document.getElementById('questao-' + index);
             if (!questaoDiv) return;
@@ -147,14 +164,64 @@
             }
 
             const letraSelecionada = selecionada.dataset.letra;
-            if (letraSelecionada === correta) {
-                Swal.fire("Parabéns!", "Resposta correta!", "success");
-            } else {
-                Swal.fire("Incorreto", "A resposta correta é: " + correta, "error");
+
+            return letraSelecionada === correta;
+        }
+
+        async function GravarPontos(index) {
+            const resultado = verificarResposta(index);
+
+            if (resultado === null) {
+                return;
+            }
+        if (resultado) {
+                // 1. Obter o ID do usuário que armazenamos no atributo data-*
+                const container = document.getElementById('container-questoes');
+                const userId = container ? container.dataset.userid : null;
+
+                if (!userId) {
+                    console.error("Não foi possível encontrar o ID do usuário na página.");
+                    Swal.fire("Erro", "Não foi possível identificar o usuário. Tente recarregar a página.", "error");
+                    return;
+                }
+
+                try {
+                    // 2. Montar e executar a chamada fetch
+                    const response = await fetch('/Pontos/PontosQuestoes', {
+                        method: 'POST',
+                        headers: {
+                            // Para enviar dados simples como este, 'x-www-form-urlencoded' funciona muito bem
+                            // e é facilmente entendido pelo ASP.NET Core.
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            // Adicionar o RequestVerificationToken é uma boa prática de segurança contra ataques CSRF
+                            //'RequestVerificationToken': document.getElementsByName('__RequestVerificationToken')[0].value
+                        },
+                        // 3. Montar o corpo da requisição
+                        body: `idUsuario=${encodeURIComponent(userId)}`
+                    });
+
+                    // 4. Analisar a resposta do servidor
+                    const resultData = await response.json();
+
+                    if (response.ok && resultData.success) {
+                        // Sucesso! O servidor retornou uma resposta positiva.
+                        console.log(resultData.message); // Exibe "Pontuação adicionada com sucesso!"
+                        Swal.fire("Sucesso!", resultData.message, "success");
+                    } else {
+                        // O servidor respondeu, mas com um erro (ex: status 500 ou success=false)
+                        Swal.fire("Erro", resultData.message || "Não foi possível registrar a pontuação.", "error");
+                    }
+
+                } catch (error) {
+                    // Erro de rede ou falha na comunicação
+                    console.error("Falha na requisição fetch:", error);
+                    Swal.fire("Erro de Conexão", "Não foi possível se comunicar com o servidor.", "error");
+                }
             }
         }
 
         function proxima(index) {
+            GravarPontos(index);
             if (index + 1 < TOTAL) mostrarQuestao(index + 1);
         }
 
