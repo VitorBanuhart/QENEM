@@ -47,7 +47,7 @@ namespace qenem.Services
             }
 
             // Procura entidade
-            var existente = await _context.AvaliarQuestoes
+            var existente = await _context.AvaliaQuestao
                 .FirstOrDefaultAsync(a => a.Usuario == dto.Usuario && a.QuestaoId == dto.QuestaoId);
 
             if (existente != null)
@@ -82,7 +82,7 @@ namespace qenem.Services
 
             try
             {
-                _context.AvaliarQuestoes.Add(nova);
+                _context.AvaliaQuestao.Add(nova);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
@@ -130,7 +130,7 @@ namespace qenem.Services
                 };
             }
 
-            var avaliacao = await _context.AvaliarQuestoes
+            var avaliacao = await _context.AvaliaQuestao
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Usuario == usuario && a.QuestaoId == questaoId);
 

@@ -18,7 +18,7 @@ namespace qenem.Data
         public DbSet<RespostaUsuario> RespostasUsuario { get; set; }
         public DbSet<Pontos> Pontos { get; set; }
 
-        public DbSet<AvaliaQuestao> AvaliarQuestoes { get; set; }
+        public DbSet<AvaliaQuestao> AvaliaQuestao { get; set; }
 
         public DbSet<qenem.Models.Anotacoes> Anotacoes { get; set; }
 
