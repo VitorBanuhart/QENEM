@@ -1,116 +1,183 @@
-﻿/* anotações - canto inferior esquerdo, tom amarelado "papel" */
+﻿/* botão toggle (fixo no canto inferior esquerdo) */
 .anotacoes-toggle {
     position: fixed;
     left: 16px;
-    bottom: 16px;
+    bottom: 72px;
     z-index: 1050;
-    background: #f7e9a9;
+    background: #ffffff;
     color: #333;
-    border: 1px solid #e0c85a;
+    border: 1px solid #ddd;
     padding: 8px 10px;
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
     cursor: pointer;
-    font-weight: 600;
-    display: flex;
+    font-weight: 700;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    min-width: 120px;
 }
 
-/* painel */
+/* texto à esquerda, ícone à direita */
+.anotacoes-label {
+    order: 1;
+}
+
+.anotacoes-icon {
+    order: 2;
+    font-size: 18px;
+    opacity: 0.95;
+}
+
+/* painel de anotações - inicialmente invisível e sem "vazamento" de cor */
 .anotacoes-panel {
     position: fixed;
     left: 16px;
-    bottom: 64px;
-    width: 320px;
-    max-height: 420px;
+    bottom: 80px;
+    width: 340px;
+    height: 320px;
+    min-width: 220px;
+    min-height: 160px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 120px);
     background: linear-gradient(180deg, #fffde7 0%, #fff9d6 100%);
     border: 1px solid #e6d373;
-    border-radius: 8px;
-    box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+    border-radius: 10px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.18);
     overflow: hidden;
-    transform: translateY(110%);
-    transition: transform 300ms ease;
+    transform: translateY(12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 220ms ease, opacity 180ms ease;
     z-index: 1049;
     display: flex;
     flex-direction: column;
+    /* permitir redimensionamento */
+    resize: both;
+    overflow: auto;
 }
 
+    /* quando aberto */
     .anotacoes-panel.open {
-        transform: translateY(0%);
+        transform: translateY(0);
+        opacity: 1;
+        pointer-events: auto;
     }
 
+    /* header: área de arraste */
     .anotacoes-panel .header {
-        padding: 8px;
+        height: 36px;
         display: flex;
-        justify-content: flex-end;
         align-items: center;
+        justify-content: flex-end;
         gap: 8px;
+        padding: 6px 8px;
         position: relative;
-        min-height: 34px;
+        cursor: default;
     }
 
+/* drag handle (invisible, ocupa toda a área do header para arrastar) */
+.drag-handle {
+    position: absolute;
+    left: 8px;
+    right: 48px;
+    top: 6px;
+    bottom: 6px;
+    cursor: move;
+}
+
+/* close button */
 .anotacoes-close {
     background: transparent;
     border: none;
     font-size: 16px;
     cursor: pointer;
+    z-index: 2;
 }
 
+/* indicador salvo */
 .anotacoes-saved {
     position: absolute;
     left: 12px;
     top: 8px;
     display: none;
+    font-size: 13px;
+    color: #2a6f2a;
 }
 
     .anotacoes-saved.show {
         display: inline-block;
     }
 
+/* content com scrollbar */
 .anotacoes-panel .content {
-    padding: 8px;
+    padding: 10px;
     overflow-y: auto;
     flex: 1 1 auto;
 }
 
+/* textarea */
 .anotacoes-textarea {
     width: 100%;
-    min-height: 220px;
-    max-height: 360px;
-    resize: vertical;
+    height: 100%;
+    min-height: 180px;
     border: none;
     outline: none;
     background: transparent;
     font-size: 14px;
     line-height: 1.4;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    resize: none; /* resizable via painel, não via textarea */
 }
 
+/* footer */
 .anotacoes-panel .footer {
-    padding: 8px;
-    border-top: 1px solid rgba(0,0,0,0.06);
+    padding: 10px;
+    border-top: 1px solid rgba(0,0,0,0.04);
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
 }
 
+/* botão Salvar*/
 .anotacoes-save {
     background: #f2c94c;
     border: 1px solid #d9a824;
-    padding: 6px 10px;
+    padding: 4px 10px;
     border-radius: 6px;
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    font-size: 13px;
+    line-height: 1;
+    min-height: 32px;
+    height: auto;
 }
 
     .anotacoes-save:active {
         transform: translateY(1px);
     }
 
-@media (min-width: 1200px) {
+/* custom scrollbar */
+.anotacoes-panel .content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.anotacoes-panel .content::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.10);
+    border-radius: 10px;
+}
+
+/* responsividade */
+@media (max-width: 420px) {
+    .anotacoes-toggle {
+        min-width: 110px;
+        padding: 8px;
+        font-size: 14px;
+    }
+
     .anotacoes-panel {
-        width: 360px;
+        width: calc(100vw - 32px);
+        left: 16px;
+        right: 16px;
     }
 }

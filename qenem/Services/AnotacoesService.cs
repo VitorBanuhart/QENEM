@@ -19,7 +19,7 @@ namespace qenem.Services
         }
 
         // retorna as anotações do usuário (ou null se não existir)
-        public async Task<Anotacoes> GetByUserAsync(string usuarioId)
+        public async Task<Anotacoes?> GetByUserAsync(string usuarioId)
         {
             try
             {

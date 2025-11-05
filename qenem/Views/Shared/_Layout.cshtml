@@ -100,17 +100,18 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/ajuda-modal.js" asp-append-version="true"></script>
-    @* Só renderiza se estiver autenticado *@
     @if (User?.Identity != null && User.Identity.IsAuthenticated)
     {
         <div id="anotacoes-root">
-            <button class="anotacoes-toggle" aria-expanded="false" title="Anotações">
-                <span style="font-size:14px; line-height:1;">📝</span>
+            <button class="anotacoes-toggle" aria-expanded="false" title="Abrir anotações">
+                <span class="anotacoes-label">Anotações</span>
+                <span class="anotacoes-icon" aria-hidden="true">📝</span>
             </button>
 
-            <div class="anotacoes-panel" role="region" aria-label="Anotações do usuário">
+            <div class="anotacoes-panel" role="region" aria-label="Anotações do usuário" tabindex="-1">
                 <div class="header">
-                    <button class="anotacoes-close" aria-label="Fechar" title="Fechar">✕</button>
+                    <div class="drag-handle" title="Arraste para mover"></div>
+                    <button class="anotacoes-close" aria-label="Fechar">✕</button>
                     <div class="anotacoes-saved" id="anotacoesSaved">Salvo ✓</div>
                 </div>
 
