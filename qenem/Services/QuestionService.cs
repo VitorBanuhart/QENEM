@@ -163,5 +163,29 @@ namespace qenem.Services
             var allQuestions = LoadQuestions();
             return allQuestions.FirstOrDefault(q => q.UniqueId == uniqueId);
         }
+    
+        //public void exportarLista()
+        //{
+         
+
+        //    // --- PASSO 2: CONFIGURAR A SERIALIZAÇÃO ---
+        //    // JsonSerializerOptions é usado para formatar o JSON (deixar "bonito" e indentado)
+        //    JsonSerializerOptions options = new JsonSerializerOptions
+        //    {
+        //        WriteIndented = true // Isso formata o JSON para fácil leitura
+        //    };
+
+        //    // --- PASSO 3: SERIALIZAR (Converter C# para JSON) ---
+        //    // Isso transforma a List<Produto> em uma string JSON
+        //    string jsonString = JsonSerializer.Serialize(meusProdutos, options);
+
+        //    // --- PASSO 4: EXPORTAR (Salvar a string em um arquivo) ---
+        //    // File.WriteAllTextAsync cria (ou sobrescreve) o arquivo com o conteúdo da string
+        //    await File.WriteAllTextAsync("produtos.json", jsonString);
+
+        //    Console.WriteLine("Arquivo 'produtos.json' exportado com sucesso!");
+        //    Console.WriteLine(jsonString);
+        //}
+    
     }
 }

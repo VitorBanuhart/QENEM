@@ -12,6 +12,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.IO;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 
 namespace qenem.Controllers
 {
@@ -590,7 +592,7 @@ namespace qenem.Controllers
                                                 return;
 
                                             // Split por placeholder (mantendo-os)
-                                            var parts = System.Text.RegularExpressions.Regex.Split(text, "(\\[\\[IMAGE_\\d+\\]\\])");
+                                            var parts = System.Text.RegularExpressions.Regex.Split(text, "(\\[\\[IMAGE_\\d+\\]\\]");
 
                                             foreach (var part in parts)
                                             {
@@ -766,6 +768,176 @@ namespace qenem.Controllers
                 }
                 return name;
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportarListaJson(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var lista = await _context.Listas
+                .Include(l => l.ListaQuestoes)
+                .FirstOrDefaultAsync(l => l.Id == id && l.UsuarioId == userId);
+
+            if (lista == null) return NotFound();
+
+            List<Question> todasQuestoes;
+            try
+            {
+                todasQuestoes = _questionService.GetAllQuestions();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro ao carregar questões: {ex.Message}");
+            }
+
+            var questaoIds = lista.ListaQuestoes.Select(lq => lq.QuestaoId).ToList();
+            var ordenadas = new List<Question>();
+
+            foreach (var qid in questaoIds)
+            {
+                // tentativa 1: match exato (case-insensitive)
+                var q = todasQuestoes.FirstOrDefault(x => !string.IsNullOrEmpty(x.UniqueId) &&
+                    string.Equals(x.UniqueId.Trim(), qid.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                if (q == null)
+                {
+                    // tentativa 2: por nome do arquivo
+                    var fileName = Path.GetFileName(qid);
+                    q = todasQuestoes.FirstOrDefault(x =>
+                        !string.IsNullOrEmpty(x.UniqueId) &&
+                        string.Equals(Path.GetFileName(x.UniqueId), fileName, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (q == null)
+                {
+                    // tentativa 3: endsWith fallback
+                    var fileName = Path.GetFileName(qid);
+                    q = todasQuestoes.FirstOrDefault(x =>
+                        !string.IsNullOrEmpty(x.UniqueId) &&
+                        x.UniqueId.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (q != null) ordenadas.Add(q);
+                // se não encontrar, ignora (pode logar se desejar)
+            }
+
+            var json = System.Text.Json.JsonSerializer.Serialize(ordenadas, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            var fileNameExport = $"{lista.Nome}.json";
+
+            return File(bytes, "application/json", fileNameExport);
+        }
+
+        [HttpPost]
+        [RequestSizeLimit(20_000_000)]
+        public async Task<IActionResult> ImportarListaJson(IFormFile file, [FromForm] string nomeLista)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "Arquivo inválido." });
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { success = false, message = "Usuário não autenticado." });
+
+            // Nome padrão se não informado
+            if (string.IsNullOrWhiteSpace(nomeLista))
+                nomeLista = $"Importada_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+
+            string json;
+            using (var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8))
+            {
+                json = await reader.ReadToEndAsync();
+            }
+
+            List<Question> imported;
+            try
+            {
+                imported = JsonSerializer.Deserialize<List<Question>>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<Question>();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = "JSON inválido.", details = ex.Message });
+            }
+
+            if (!imported.Any())
+                return BadRequest(new { success = false, message = "Nenhuma questão encontrada no JSON." });
+
+            List<Question> todasQuestoes;
+            try
+            {
+                todasQuestoes = _questionService.GetAllQuestions();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Erro ao carregar questões do disco.", details = ex.Message });
+            }
+
+            // Cria a nova lista
+            var novaLista = new Lista
+            {
+                Nome = nomeLista.Length > 30 ? nomeLista.Substring(0, 30) : nomeLista,
+                UsuarioId = userId
+            };
+            _context.Listas.Add(novaLista);
+            await _context.SaveChangesAsync(); // precisa do Id
+
+            int added = 0;
+            foreach (var iq in imported)
+            {
+                Question match = null;
+
+                // tentativa 1: match exato por UniqueId (trim + case-insensitive)
+                if (!string.IsNullOrWhiteSpace(iq.UniqueId))
+                {
+                    match = todasQuestoes.FirstOrDefault(q =>
+                        !string.IsNullOrWhiteSpace(q.UniqueId) &&
+                        string.Equals(q.UniqueId.Trim(), iq.UniqueId.Trim(), StringComparison.OrdinalIgnoreCase));
+                }
+
+                // tentativa 2: por nome do arquivo
+                if (match == null && !string.IsNullOrWhiteSpace(iq.UniqueId))
+                {
+                    var fileName = Path.GetFileName(iq.UniqueId);
+                    match = todasQuestoes.FirstOrDefault(q =>
+                        !string.IsNullOrWhiteSpace(q.UniqueId) &&
+                        string.Equals(Path.GetFileName(q.UniqueId), fileName, StringComparison.OrdinalIgnoreCase));
+                }
+
+                // tentativa 3: endsWith fallback
+                if (match == null && !string.IsNullOrWhiteSpace(iq.UniqueId))
+                {
+                    var fileName = Path.GetFileName(iq.UniqueId);
+                    match = todasQuestoes.FirstOrDefault(q =>
+                        !string.IsNullOrWhiteSpace(q.UniqueId) &&
+                        q.UniqueId.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (match == null) continue;
+
+                // evita duplicata na mesma lista
+                var exists = await _context.ListaQuestoes.AnyAsync(lq => lq.ListaId == novaLista.Id && lq.QuestaoId == match.UniqueId);
+                if (exists) continue;
+
+                _context.ListaQuestoes.Add(new ListaQuestao
+                {
+                    ListaId = novaLista.Id,
+                    QuestaoId = match.UniqueId
+                });
+                added++;
+
+                // salva em batches para não segurar muitas alterações
+                if (added % 100 == 0)
+                    await _context.SaveChangesAsync();
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Importação finalizada.", listaId = novaLista.Id, added });
         }
     }
 
