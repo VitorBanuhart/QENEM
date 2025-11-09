@@ -52,6 +52,7 @@
         <a class="btn btn-danger" asp-controller="Lista" asp-action="BaixarPDF" asp-route-listaId="@ViewBag.ListaId">
             Baixar em PDF
         </a>
+        <a class="btn" href="/Lista/ExportarListaJson?id=@ViewBag.ListaId">Exportar JSON</a>
     }
 </div>
 

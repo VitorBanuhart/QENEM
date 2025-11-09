@@ -1,60 +1,110 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using qenem.Data;
 using qenem.Models;
 using qenem.Services;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace qenem.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AvaliacaoController : ControllerBase
+    [Authorize]
+    public class AvaliacaoController : Controller
     {
         private readonly AvaliacaoService _avaliacaoService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
+        private readonly QuestionService _questionService;
 
-        public AvaliacaoController(AvaliacaoService avaliacaoService, UserManager<ApplicationUser> userManager)
+        public AvaliacaoController(AvaliacaoService avaliacaoService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, QuestionService questionService)
         {
             _avaliacaoService = avaliacaoService;
             _userManager = userManager;
+            _context = context;
+            _questionService = questionService;
         }
 
-        // POST: api/avaliacao/salvar
-        [HttpPost("salvar")]
-        public async Task<IActionResult> SalvarAvaliacao([FromBody] AvaliacaoService.AvaliacaoDto dto)
+        
+        public class AvaliacaoDto
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return Unauthorized(new { success = false, message = "Usuário não autenticado." });
-            }
-
-            // Garante que a avaliação seja salva para o usuário logado
-            dto.Usuario = user.Id;
-
-            var result = await _avaliacaoService.SalvarOuAtualizarAvaliacaoAsync(dto);
-
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            return BadRequest(result);
+            public string Usuario { get; set; }
+            public string QuestaoId { get; set; }
+            public int Avaliacao { get; set; } 
         }
 
-        // GET: api/avaliacao/verificar/{questaoId}
-        [HttpGet("verificar/{questaoId}")]
-        public async Task<IActionResult> VerificarAvaliacao(string questaoId)
+        // POST: /avaliacao/salvar
+        [HttpPost]
+        public async Task<IActionResult> Salvar([FromBody] AvaliacaoDto dto)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (dto == null)
+                return BadRequest(new { success = false, message = "Payload inválido." });
+
+            if (dto.Avaliacao < 1 || dto.Avaliacao > 3)
+                return BadRequest(new { success = false, message = "Avaliacao fora do range permitido." });
+
+            string questaoId;
+            int questaoIdInt;
+            if (int.TryParse(dto.QuestaoId, out questaoIdInt))
             {
-                return Unauthorized(new { success = false, message = "Usuário não autenticado." });
+                questaoId = dto.QuestaoId;
+            }
+            else
+            {
+                var question = _questionService.GetByUniqueId(dto.QuestaoId);
+                if (question == null)
+                    return BadRequest(new { success = false, message = "Questão não encontrada para o QuestaoId enviado." });
+
+                questaoId = question.UniqueId;
             }
 
-            var result = await _avaliacaoService.VerificarAvaliacaoAsync(user.Id, questaoId);
+            try
+            {
+                await _avaliacaoService.SalvarOuAtualizarAvaliacaoAsync(new AvaliacaoService.AvaliacaoDto
+                {
+                    Usuario = usuarioId,
+                    QuestaoId = questaoId,
+                    Avaliacao = dto.Avaliacao
+                });
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                // registrar/logar ex.Message conforme logger do projeto
+                return StatusCode(500, new { success = false, message = "Erro interno ao salvar", detail = ex.Message });
+            }
+        }
 
-            return Ok(result);
+        // GET: avaliacao/verificar/{questaoId}
+        [HttpGet]
+        public async Task<IActionResult> Verificar([FromQuery] string questaoPath)
+        {
+            var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(questaoPath))
+                return BadRequest(new { success = false, message = "questaoPath ausente" });
+
+            // Resolve questaoPath -> UniqueId, quando necessário
+            string questaoId = questaoPath;
+            if (!int.TryParse(questaoPath, out _))
+            {
+                var question = _questionService.GetByUniqueId(questaoPath);
+                if (question == null)
+                    return NotFound(new { success = false, message = "Questão não encontrada para o caminho informado." });
+
+                questaoId = question.UniqueId;
+            }
+
+            // Aguardamos o resultado do service corretamente
+            var avaliacaoResult = await _avaliacaoService.VerificarAvaliacaoAsync(usuarioId, questaoId);
+
+            // Retornamos apenas os dados que o JS precisa (avaliacao como inteiro / null)
+            return Ok(new
+            {
+                success = avaliacaoResult?.Success ?? false,
+                avaliacao = avaliacaoResult?.Avaliacao, // será int? ou null
+                message = avaliacaoResult?.Message
+            });
         }
     }
 }

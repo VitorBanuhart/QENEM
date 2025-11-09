@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace qenem.Migrations
 {
     /// <inheritdoc />
-    public partial class inicial : Migration
+    public partial class MigrationInicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,6 +22,20 @@ namespace qenem.Migrations
                 },
                 constraints: table =>
                 {
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Anotacoes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AnotacoesUsuario = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Anotacoes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,6 +103,20 @@ namespace qenem.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AvaliaQuestao", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Pontos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Usuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TotalPontuacao = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pontos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -423,6 +451,9 @@ namespace qenem.Migrations
                 name: "Alternative");
 
             migrationBuilder.DropTable(
+                name: "Anotacoes");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -445,6 +476,9 @@ namespace qenem.Migrations
 
             migrationBuilder.DropTable(
                 name: "ListaSimulados");
+
+            migrationBuilder.DropTable(
+                name: "Pontos");
 
             migrationBuilder.DropTable(
                 name: "RespostasUsuario");

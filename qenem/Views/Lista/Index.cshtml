@@ -45,6 +45,17 @@
                     </div>
                 }
             }
+            <form id="import-form" enctype="multipart/form-data">
+                <div class="mb-2">
+                    <label for="nomeLista" class="form-label">Nome da nova lista</label>
+                    <input type="text" id="nomeLista" name="nomeLista" class="form-control" maxlength="30" />
+                </div>
+                <div class="mb-2">
+                    <label for="fileJson" class="form-label">Arquivo JSON</label>
+                    <input type="file" id="fileJson" name="file" accept=".json,application/json" class="form-control" />
+                </div>
+                <button type="button" id="btn-importar" class="btn btn-primary">Importar JSON como nova lista</button>
+            </form>
         </div>
         <div class="card-footer">
             <button class="btn btn-primary" id="btn-criar-lista">Criar Lista</button>
@@ -262,5 +273,35 @@
                 Swal.fire("Erro", "Problema na requisição. Verifique o console para mais detalhes.", "error");
             }
         }
+
+                document.getElementById('btn-importar').addEventListener('click', async function () {
+            const fileInput = document.getElementById('fileJson');
+            if (!fileInput.files.length) { Swal.fire('Selecione um arquivo JSON.'); return; }
+
+            const form = new FormData();
+            form.append('file', fileInput.files[0]);
+            form.append('nomeLista', document.getElementById('nomeLista').value || '');
+
+            try {
+                Swal.fire({ title: 'Importando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const response = await fetch('@Url.Action("ImportarListaJson", "Lista")', {
+                    method: 'POST',
+                    body: form
+                });
+                const result = await response.json();
+                Swal.close();
+
+                if (response.ok && result.success) {
+                    Swal.fire('Sucesso', `${result.added} questões adicionadas à lista.`, 'success').then(() => {
+                        // redireciona para a página da lista criada
+                        window.location.href = `/Lista/Questoes?id=${result.listaId}`;
+                    });
+                } else {
+                    Swal.fire('Erro', result.message || 'Falha ao importar.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Erro', 'Falha na comunicação com o servidor.', 'error');
+            }
+        });
     </script>
 }

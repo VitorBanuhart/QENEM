@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using qenem.Data;
 
@@ -11,9 +12,11 @@ using qenem.Data;
 namespace qenem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251102192233_MigrationAnotacao")]
+    partial class MigrationAnotacao
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -304,7 +307,7 @@ namespace qenem.Migrations
                     b.HasIndex("Usuario", "QuestaoId")
                         .IsUnique();
 
-                    b.ToTable("AvaliarQuestoes");
+                    b.ToTable("AvaliaQuestao");
                 });
 
             modelBuilder.Entity("qenem.Models.Lista", b =>

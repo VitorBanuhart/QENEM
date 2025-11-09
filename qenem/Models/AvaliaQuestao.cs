@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace qenem.Models
 {
-    [Table("AvaliaQuestao")]
     public class AvaliaQuestao
     {
         [Key]
