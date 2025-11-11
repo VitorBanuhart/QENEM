@@ -28,5 +28,16 @@ namespace qenem.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        
+        [HttpGet]
+        public IActionResult ToggleTheme(string theme)
+        {
+            Response.Cookies.Append("Theme", theme, new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddYears(1)
+            });
+
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
     }
 }
