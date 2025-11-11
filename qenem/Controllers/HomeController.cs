@@ -30,9 +30,13 @@ namespace qenem.Controllers
         }
         
         [HttpGet]
-        public IActionResult ToggleTheme(string theme)
+        public IActionResult ToggleTheme()
         {
-            Response.Cookies.Append("Theme", theme, new CookieOptions
+            string currentTheme = Request.Cookies["Theme"];
+
+            string nextTheme = (currentTheme == "dark") ? "light" : "dark";
+
+            Response.Cookies.Append("Theme", nextTheme, new CookieOptions
             {
                 Expires = DateTimeOffset.UtcNow.AddYears(1)
             });
