@@ -26,11 +26,10 @@
         }
 
             .progress-dot.active {
-                background-color: #0d6efd;
+                border-color: #0f5132;
             }
 
             .progress-dot.answered {
-                background-color: #d1e7dd;
                 border-color: #0f5132;
             }
 
@@ -39,14 +38,14 @@
             align-items: center;
             gap: 8px;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #0f5132;
             border-radius: 5px;
             margin-bottom: 10px;
             cursor: pointer;
         }
 
             .option-label:hover {
-                background-color: #f0f0f0;
+                border:2px solid #0d6efd;
             }
 
         input[type="radio"] {
@@ -54,8 +53,7 @@
         }
 
             input[type="radio"]:checked + .option-label {
-                border-color: #0d6efd;
-                background-color: #cfe2ff;
+                border-color: #0d6efd; 
             }
 
         .option-label span, .option-label p {
@@ -71,7 +69,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body c>
     <div class="container my-5">
         <div class="card p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -89,7 +87,7 @@
                     if (i == Model.QuestaoAtualIndex) { dotClass += " active"; }
 
                     <button type="button" class="@dotClass btn btn-sm" style="position: relative;" onclick="goToQuestion(@i)">
-                        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: black;">
+                        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem;">
                             @(i + 1)
                         </span>
                     </button>

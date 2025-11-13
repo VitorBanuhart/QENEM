@@ -25,27 +25,27 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li>
-                            <a href="@Url.Action("ToggleTheme", "Home")">
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("ToggleTheme", "Home")">
                                 Alternar tema
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link " asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         @if(User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="AreaInteresse">Área de Interesse</a>
+                                <a class="nav-link " asp-area="" asp-controller="Users" asp-action="AreaInteresse">Área de Interesse</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="ListarQuestoes" asp-action="Index">Questões</a>
+                                <a class="nav-link " asp-area="" asp-controller="ListarQuestoes" asp-action="Index">Questões</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
+                                <a class="nav-link " asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Simulado" asp-action="Index">Simulado</a>
+                                <a class="nav-link " asp-area="" asp-controller="Simulado" asp-action="Index">Simulado</a>
                             </li>
                         }
                     </ul>
