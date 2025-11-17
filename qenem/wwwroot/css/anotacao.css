@@ -55,7 +55,9 @@
     border: none;
     font-size: 16px;
     cursor: pointer;
+    color: black;
 }
+
 
 .anotacoes-saved {
     position: absolute;
@@ -84,6 +86,7 @@
     background: transparent;
     font-size: 14px;
     line-height: 1.4;
+    color:black;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 

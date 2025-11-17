@@ -28,6 +28,7 @@ builder.Services.AddScoped<IEmailSender, MailerSendEmailService>();
 builder.Services.AddScoped<IEmailService, MailerSendEmailService>();
 builder.Services.AddScoped<SimuladoService>();
 builder.Services.AddScoped<AvaliacaoService>();
+builder.Services.AddScoped<AnotacoesService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IEmailSender, MailerSendEmailService>();
