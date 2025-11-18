@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using qenem;
 using qenem.Data;
 using qenem.Interfaces;
-using qenem.Models; 
+using qenem.Models;
 using qenem.Services;
 using System;
 
@@ -44,40 +44,58 @@ builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        var context = services.GetRequiredService<qenem.Data.ApplicationDbContext>();
+
+        // 1. Aplicar Migrations
+        logger.LogInformation("Aplicando migrations...");
+        context.Database.Migrate();
+        logger.LogInformation("Migrations aplicadas com sucesso.");
+
+        // 2. Aplicar "Seed" de AreasInteresse
+        if (!context.AreasInteresse.Any())
+        {
+            logger.LogInformation("Adicionando Areas de Interesse (seed)...");
+            context.AreasInteresse.AddRange(
+                new AreaInteresse { NomeAreaInteresse = "ciencias-humanas" },
+                new AreaInteresse { NomeAreaInteresse = "ciencias-natureza" },
+                new AreaInteresse { NomeAreaInteresse = "linguagens" },
+                new AreaInteresse { NomeAreaInteresse = "matematica" },
+                new AreaInteresse { NomeAreaInteresse = "espanhol" },
+                new AreaInteresse { NomeAreaInteresse = "ingles" }
+            );
+            context.SaveChanges();
+            logger.LogInformation("Seed de Areas de Interesse concluído.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Um erro ocorreu ao inicializar o banco de dados (Migration ou Seed).");
+    }
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
-app.UseAuthentication();
+
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
-
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    if (!context.AreasInteresse.Any())
-    {
-        context.AreasInteresse.AddRange(
-            new AreaInteresse { NomeAreaInteresse = "ciencias-humanas" },
-            new AreaInteresse { NomeAreaInteresse = "ciencias-natureza" },
-            new AreaInteresse { NomeAreaInteresse = "linguagens" },
-            new AreaInteresse { NomeAreaInteresse = "matematica" },
-            new AreaInteresse { NomeAreaInteresse = "espanhol" },
-            new AreaInteresse { NomeAreaInteresse = "ingles" }
-        );
-
-        context.SaveChanges();
-    }
-}
-
 app.Run();
