@@ -7,12 +7,12 @@ using System.Text.Json;
 
 namespace qenem.Services
 {
-    public class MailerSendEmailService : IEmailSender, IEmailService
+    public class MailGunEmailService : IEmailSender, IEmailService
     {
-        private readonly MailerSendSetting _setting;
+        private readonly MailGunSetting _setting;
         private readonly HttpClient _httpClient;
 
-        public MailerSendEmailService(IOptions<MailerSendSetting> setting)
+        public MailGunEmailService(IOptions<MailGunSetting> setting)
         {
             _setting = setting.Value;
 

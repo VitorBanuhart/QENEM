@@ -24,14 +24,14 @@ builder.Services.AddSingleton<QuestionService>(sp =>
     var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Questions");
     return new QuestionService(repo, dataPath);
 });
-builder.Services.AddScoped<IEmailSender, MailerSendEmailService>();
-builder.Services.AddScoped<IEmailService, MailerSendEmailService>();
+builder.Services.AddScoped<IEmailSender, MailGunEmailService>();
+builder.Services.AddScoped<IEmailService, MailGunEmailService>();
 builder.Services.AddScoped<SimuladoService>();
 builder.Services.AddScoped<AvaliacaoService>();
 builder.Services.AddScoped<AnotacoesService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddSingleton<IEmailSender, MailerSendEmailService>();
+builder.Services.AddSingleton<IEmailSender, MailGunEmailService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -40,7 +40,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 builder.Services.AddScoped<PontosService>();
-builder.Services.Configure<MailerSendSetting>(builder.Configuration.GetSection("MailerSend"));
+builder.Services.Configure<MailGunSetting>(builder.Configuration.GetSection("MailerSend"));
 
 var app = builder.Build();
 

@@ -1,6 +1,6 @@
 ﻿namespace qenem
 {
-    public class MailerSendSetting
+    public class MailGunSetting
     {
         public string ApiKey { get; set; }
         public string SenderEmail { get; set; }
