@@ -18,10 +18,10 @@ namespace qenem.Services
 
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri("https://api.mailersend.com/v1/")
+                BaseAddress = new Uri("https://api.mailgun.net/v3/")
             };
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _setting.ApiKey);
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var authValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"api:{_setting.ApiKey}"));
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authValue);
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string htmlContent)
@@ -31,26 +31,19 @@ namespace qenem.Services
                 throw new InvalidOperationException("MailerSend settings are not properly configured.");
             }
 
-            var emailData = new
+            var emailData = new Dictionary<string,string>
             {
-                from = new
-                {
-                    email = _setting.SenderEmail,
-                    name = _setting.SenderName
-                },
-                to = new[]
-                {
-                    new { email = toEmail, name = toEmail } // Nome pode ser vazio ou mesmo que email
-                },
-                subject = subject,
-                html = htmlContent,
-                text = "Versão em texto do e-mail"
+                { "from", _setting.SenderName},
+                { "to", toEmail },
+                { "subject", subject },
+                { "html", htmlContent },
+                { "text", "Versão em texto do e-mail" }
             };
 
-            var json = JsonSerializer.Serialize(emailData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("email", content);
+            var content = new FormUrlEncodedContent(emailData);
+
+            var response = await _httpClient.PostAsync($"{_setting.SenderEmail}/messages", content);
 
             if (!response.IsSuccessStatusCode)
             {
