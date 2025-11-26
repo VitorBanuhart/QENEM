@@ -26,20 +26,6 @@
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
 
-            <div class="mb-2">
-                @if (!Model.IsEmailConfirmed)
-                {
-                    <div class="alert alert-warning p-2">
-                        E-mail não confirmado.
-                        <button type="submit" formaction="./Index?handler=SendVerificationEmail" class="btn btn-sm btn-link">Enviar e-mail de confirmação</button>
-                    </div>
-                }
-                else
-                {
-                    <div class="text-success small">E-mail confirmado</div>
-                }
-            </div>
-
             <div class="form-floating mb-3">
                 <input asp-for="Input.PhoneNumber" class="form-control" />
                 <label asp-for="Input.PhoneNumber" class="form-label">Número de telefone</label>

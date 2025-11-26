@@ -57,14 +57,16 @@
 
                         <div class="mt-3 d-flex justify-content-between">
 
-
                             <button class="btn btn-info" onclick="anterior(@i)" @(i == 0 ? "disabled" : "")>Anterior</button>
 
                             <button class="btn btn-success" onclick="gerenciarVerificacao(@i)">Verificar</button>
 
+                            @* Aqui: se for a última questão, mostramos um botão "Finalizar" que envia os dados e, após sucesso, substitui pelo "Gerar Mais" *@
                             @if (i == Model.Count - 1)
                             {
-                                <button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar Mais</button>
+                                <div id="action-area-@i">
+                                    <button class="btn btn-warning" onclick="finalizarQuestao(@i)">Finalizar Questão</button>
+                                </div>
                             }
                             else
                             {
@@ -118,6 +120,8 @@
         });
 
         let TOTAL = @Model.Count;
+        window.totalAcertos = 0;
+        window.acertosPorQuestao = new Set();
 
         function abrirModalAdicionarListaFromButton(button) {
             const questaoId = button.getAttribute('data-id');
@@ -139,7 +143,7 @@
 
         async function gerenciarVerificacao(index) {
             const resultado = verificarResposta(index);
-            
+            console.log("index " + index);
             if (resultado === null) {
                 return;
             }
@@ -154,13 +158,16 @@
 
         function verificarResposta(index) {
             const questaoDiv = document.getElementById('questao-' + index);
-            if (!questaoDiv) return;
+            if (!questaoDiv) {
+                console.warn(`verificarResposta: questao-${index} não encontrada`);
+                return null; 
+            }
             const correta = questaoDiv.dataset.correcta;
             const selecionada = questaoDiv.querySelector('.alternativa.active');
 
             if (!selecionada) {
                 Swal.fire("Atenção", "Selecione uma alternativa antes de verificar.", "warning");
-                return;
+                return null;
             }
 
             const letraSelecionada = selecionada.dataset.letra;
@@ -172,56 +179,82 @@
             const resultado = verificarResposta(index);
 
             if (resultado === null) {
-                return;
+                return false;
             }
-        if (resultado) {
-                // 1. Obter o ID do usuário que armazenamos no atributo data-*
-                const container = document.getElementById('container-questoes');
-                const userId = container ? container.dataset.userid : null;
+            if (!resultado) {
+                return false;
+            }
 
-                if (!userId) {
-                    console.error("Não foi possível encontrar o ID do usuário na página.");
-                    Swal.fire("Erro", "Não foi possível identificar o usuário. Tente recarregar a página.", "error");
-                    return;
+            const questaoDiv = document.getElementById('questao-' + index);
+            const questaoId = questaoDiv?.querySelector('button[data-id]')?.getAttribute('data-id') || index;
+
+            if (window.acertosPorQuestao.has(questaoId)) return true;
+
+            const container = document.getElementById('container-questoes');
+            const userId = container ? container.dataset.userid : null;
+
+            if (!userId) {
+                console.error("Não foi possível encontrar o ID do usuário na página.");
+                Swal.fire("Erro", "Não foi possível identificar o usuário. Tente recarregar a página.", "error");
+                return false;
+            }
+
+            try {
+                const response = await fetch('/Pontos/PontosQuestoes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `idUsuario=${encodeURIComponent(userId)}`
+                });
+
+                const resultData = await response.json();
+
+                if (response.ok && resultData.success) {
+                    console.log(resultData.message);
+                    window.totalAcertos++;
+                    window.acertosPorQuestao.add(questaoId);
+                    return true;
+                } else {
+                    Swal.fire("Erro", resultData.message || "Não foi possível registrar a pontuação.", "error");
+                    return false;
                 }
 
-                try {
-                    // 2. Montar e executar a chamada fetch
-                    const response = await fetch('/Pontos/PontosQuestoes', {
-                        method: 'POST',
-                        headers: {
-                            // Para enviar dados simples como este, 'x-www-form-urlencoded' funciona muito bem
-                            // e é facilmente entendido pelo ASP.NET Core.
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            // Adicionar o RequestVerificationToken é uma boa prática de segurança contra ataques CSRF
-                            //'RequestVerificationToken': document.getElementsByName('__RequestVerificationToken')[0].value
-                        },
-                        // 3. Montar o corpo da requisição
-                        body: `idUsuario=${encodeURIComponent(userId)}`
-                    });
-
-                    // 4. Analisar a resposta do servidor
-                    const resultData = await response.json();
-
-                    if (response.ok && resultData.success) {
-                        // Sucesso! O servidor retornou uma resposta positiva.
-                        console.log(resultData.message); // Exibe "Pontuação adicionada com sucesso!"
-                        Swal.fire("Sucesso!", resultData.message, "success");
-                    } else {
-                        // O servidor respondeu, mas com um erro (ex: status 500 ou success=false)
-                        Swal.fire("Erro", resultData.message || "Não foi possível registrar a pontuação.", "error");
-                    }
-
-                } catch (error) {
-                    // Erro de rede ou falha na comunicação
-                    console.error("Falha na requisição fetch:", error);
-                    Swal.fire("Erro de Conexão", "Não foi possível se comunicar com o servidor.", "error");
-                }
+            } catch (error) {
+                console.error("Falha na requisição fetch:", error);
+                Swal.fire("Erro de Conexão", "Não foi possível se comunicar com o servidor.", "error");
+                return false;
             }
         }
 
+        async function finalizarQuestao(index) {
+            const questaoDiv = document.getElementById('questao-' + index);
+            if (!questaoDiv) return;
+
+            const selecionada = questaoDiv.querySelector('.alternativa.active');
+            if (!selecionada) {
+                Swal.fire("Atenção", "Selecione uma alternativa antes de finalizar.", "warning");
+                return;
+            }
+
+            const sucesso = await GravarPontos(index);
+
+            const actionArea = document.getElementById('action-area-' + index);
+            if (actionArea) {
+                actionArea.innerHTML = `<button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar Mais</button>`;
+            }
+
+            Swal.fire({
+                title: "Concluído",
+                html: `Total de acertos: ${window.totalAcertos}<br>Você pode gerar mais questões.`,
+                icon: "info"
+            });
+         }
+
         function proxima(index) {
             GravarPontos(index);
+            console.log("index " + index);
+            console.log(TOTAL);
             if (index + 1 < TOTAL) mostrarQuestao(index + 1);
         }
 
@@ -231,7 +264,6 @@
 
         function gerarMaisQuestoes() {
             Swal.fire({ title: 'Buscando novas questões...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
             fetch('/ListarQuestoes/GerarQuestoesMock', { method: 'POST' })
                 .then(response => {
                     if (!response.ok) throw new Error("Erro na rede.");
@@ -309,10 +341,10 @@
                         `).join('') : ''}
                     </div>
                     <div class="mt-3 d-flex justify-content-between">
-                        <button class="btn btn-info" onclick="anterior(${i})">Anterior</button>
-                        <button class="btn btn-success" onclick="verificarResposta(${i})">Verificar</button>
+                        <button class="btn btn-info" onclick="anterior(${i})" ${i === 0 ? "disable" : ""}>Anterior</button>
+                         <button class="btn btn-success" onclick="gerenciarVerificacao(${i})">Verificar</button>
                         ${i === questoes.length - 1
-                            ? `<button class="btn btn-primary" onclick="gerarMaisQuestoes()">Gerar Mais</button>`
+                            ? `<div id="action-area-${i}"><button class="btn btn-warning" onclick="finalizarQuestao(${i})">Finalizar Questão</button></div>`
                             : `<button class="btn btn-info" onclick="proxima(${i})">Próxima</button>`}
                     </div>
                     <div class="mt-3">
