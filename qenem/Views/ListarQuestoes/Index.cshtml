@@ -160,7 +160,7 @@
             const questaoDiv = document.getElementById('questao-' + index);
             if (!questaoDiv) {
                 console.warn(`verificarResposta: questao-${index} não encontrada`);
-                return null; // chamadores já tratam null para indicar "não selecionado/indisponível"
+                return null; 
             }
             const correta = questaoDiv.dataset.correcta;
             const selecionada = questaoDiv.querySelector('.alternativa.active');
@@ -186,13 +186,10 @@
             }
 
             const questaoDiv = document.getElementById('questao-' + index);
-            // obtenha um identificador único da questão (ajuste conforme o HTML)
             const questaoId = questaoDiv?.querySelector('button[data-id]')?.getAttribute('data-id') || index;
 
-            // já contabilizado?
             if (window.acertosPorQuestao.has(questaoId)) return true;
 
-            // 1. Obter o ID do usuário que armazenamos no atributo data-*
             const container = document.getElementById('container-questoes');
             const userId = container ? container.dataset.userid : null;
 
@@ -203,7 +200,6 @@
             }
 
             try {
-                // 2. Montar e executar a chamada fetch
                 const response = await fetch('/Pontos/PontosQuestoes', {
                     method: 'POST',
                     headers: {
@@ -212,11 +208,9 @@
                     body: `idUsuario=${encodeURIComponent(userId)}`
                 });
 
-                // 4. Analisar a resposta do servidor
                 const resultData = await response.json();
 
                 if (response.ok && resultData.success) {
-                    // Sucesso! O servidor retornou uma resposta positiva.
                     console.log(resultData.message);
                     window.totalAcertos++;
                     window.acertosPorQuestao.add(questaoId);
@@ -233,9 +227,7 @@
             }
         }
 
-        // Finaliza a última questão: grava pontos (se aplicável) e só então mostra o botão "Gerar Mais"
         async function finalizarQuestao(index) {
-            // Verifica se existe alternativa selecionada
             const questaoDiv = document.getElementById('questao-' + index);
             if (!questaoDiv) return;
 
@@ -245,7 +237,6 @@
                 return;
             }
 
-            // chama GravarPontos e aguarda término
             const sucesso = await GravarPontos(index);
 
             const actionArea = document.getElementById('action-area-' + index);
@@ -263,7 +254,7 @@
         function proxima(index) {
             GravarPontos(index);
             console.log("index " + index);
-
+            console.log(TOTAL);
             if (index + 1 < TOTAL) mostrarQuestao(index + 1);
         }
 
@@ -350,8 +341,8 @@
                         `).join('') : ''}
                     </div>
                     <div class="mt-3 d-flex justify-content-between">
-                        <button class="btn btn-info" onclick="anterior(${i})">Anterior</button>
-                        <button class="btn btn-success" onclick="verificarResposta(${i})">Verificar</button>
+                        <button class="btn btn-info" onclick="anterior(${i})" ${i === 0 ? "disable" : ""}>Anterior</button>
+                         <button class="btn btn-success" onclick="gerenciarVerificacao(${i})">Verificar</button>
                         ${i === questoes.length - 1
                             ? `<div id="action-area-${i}"><button class="btn btn-warning" onclick="finalizarQuestao(${i})">Finalizar Questão</button></div>`
                             : `<button class="btn btn-info" onclick="proxima(${i})">Próxima</button>`}
