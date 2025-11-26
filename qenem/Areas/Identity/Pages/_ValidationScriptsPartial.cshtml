@@ -1,3 +1,67 @@
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script>
+    (function() {
+      function translateMessage(msg) {
+        if (!msg) return null;
+        var patterns = [
+          { r: /^The (.+) field is required\.$/i, t: 'O campo $1 é obrigatório.' },
+          { r: /^The (.+) field is not a valid e-?mail address\.$/i, t: 'Por favor, forneça um endereço de e‑mail válido.' },
+          { r: /^The (.+) must be at least (\d+) and at max (\d+) characters long\.$/i, t: 'O campo $1 deve ter entre $2 e $3 caracteres.' },
+          { r: /^The (.+) and (.+) do not match\.$/i, t: 'O campo $1 e o campo $2 não conferem.' },
+          { r: /^The field (.+) must be a string with a maximum length of '(\d+)'\.$/i, t: 'O campo $1 deve ter no máximo $2 caracteres.' },
+          { r: /^The field (.+) must be between (\d+) and (\d+)\.$/i, t: 'O campo $1 deve estar entre $2 e $3.' },
+          { r: /^The field (.+) is not valid\.$/i, t: 'O campo $1 não é válido.' }
+        ];
+        for (var i = 0; i < patterns.length; i++) {
+          var m = msg.match(patterns[i].r);
+          if (m) {
+            var out = patterns[i].t;
 
+            // Normalize captured groups: trocar "password" por "senha" e ajustar casing simples.
+            // Também trata "new password" => "nova senha" e "confirm(ation) password" => "confirmação/senha".
+            var normalize = function(s) {
+              if (!s) return s;
+              // traduz ocorrências isoladas de "new password" e "confirm(ation) password"
+              s = s.replace(/\bnew password\b/gi, 'nova senha');
+              s = s.replace(/\bconfirm(?:ation)? password\b/gi, 'confirmação da senha');
+              // traduz "password" restante
+              s = s.replace(/\bpassword\b/gi, 'senha');
+              return s;
+            };
+
+            for (var g = 1; g < m.length; g++) {
+              var replacement = normalize(m[g]);
+              out = out.replace('$' + g, replacement);
+            }
+
+            return out;
+          }
+        }
+
+        // Se não casou nenhum padrão, tenta substituir "password" genérico na mensagem inteira
+        var fallback = msg.replace(/\bnew password\b/gi, 'nova senha')
+                          .replace(/\bconfirm(?:ation)? password\b/gi, 'confirmação da senha')
+                          .replace(/\bpassword\b/gi, 'senha');
+        // Se houve alteração, retorna fallback traduzido; caso contrário retorna null para usar mensagem original
+        return fallback !== msg ? fallback : null;
+      }
+
+      function translateDataValAttributes() {
+        var elems = document.querySelectorAll('[data-val]');
+        elems.forEach(function(el) {
+          var attrs = Array.prototype.slice.call(el.attributes);
+          attrs.forEach(function(attr) {
+            if (!attr.name.startsWith('data-val-') || attr.name === 'data-val') return;
+            if (/^data-val-[a-z0-9]+$/i.test(attr.name)) {
+              var newMsg = translateMessage(attr.value);
+              if (newMsg) el.setAttribute(attr.name, newMsg);
+            }
+          });
+        });
+      }
+
+      // Executa agora — antes do jquery.validate.unobtrusive parsear o DOM
+      translateDataValAttributes();
+    })();
+</script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
