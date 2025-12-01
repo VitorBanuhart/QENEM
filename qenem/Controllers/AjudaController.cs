@@ -32,7 +32,7 @@ namespace qenem.Controllers
 
             try
             {
-                var emailDestino = _configuration.GetValue<string>("MailerSend:SenderEmail");
+                var emailDestino = _configuration.GetValue<string>("MailGun:SenderEmail");
                 if (string.IsNullOrWhiteSpace(emailDestino))
                 {
                     _logger.LogError("A chave 'MailerSend:SenderEmail' não foi encontrada ou está vazia no appsettings.json.");
@@ -50,7 +50,7 @@ namespace qenem.Controllers
                     <p><strong>Mensagem:</strong></p>
                     <div style='padding:15px; border:1px solid #ccc; background-color:#f9f9f9;'><p>{model.Mensagem}</p></div>";
 
-                await _emailService.SendEmailAsync("vitorbanuhart123@gmail.com", assunto, corpoHtml);
+                await _emailService.SendEmailAsync("vitorbanuhart@gmail.com", assunto, corpoHtml);
 
                 return Ok(new { success = true, message = "Sua mensagem foi enviada com sucesso!" });
             }
